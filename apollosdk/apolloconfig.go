@@ -38,7 +38,7 @@ func NewApolloSDK(cfg SDKConfig) (*ApolloSDK, error) {
 		return clientConfig, nil
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to start Apollo client: %w", err)
+		return nil, fmt.Errorf("failed to start Apollo client: %v", err)
 	}
 
 	sdk := &ApolloSDK{
