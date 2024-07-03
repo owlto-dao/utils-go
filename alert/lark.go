@@ -5,7 +5,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/owlto-finance/utils-go/network"
+	"github.com/owlto-dao/utils-go/network"
 )
 
 // alerter := alert.NewLarkAlerter("https://open.larksuite.com/open-apis/bot/v2/hook/xxxx")

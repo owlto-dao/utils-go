@@ -6,7 +6,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/owlto-finance/utils-go/abi/erc20"
+	"github.com/owlto-dao/utils-go/abi/erc20"
 )
 
 func Erc20ApproveBody(client *ethclient.Client, senderAddr string, tokenAddr string, spender string, amount *big.Int) ([]byte, error) {
