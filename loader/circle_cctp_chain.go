@@ -8,7 +8,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/owlto-finance/utils-go/alert"
+	"github.com/owlto-dao/utils-go/alert"
 )
 
 type CircleCctpChain struct {

@@ -11,7 +11,7 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 	ethrpc "github.com/ethereum/go-ethereum/rpc"
 	solrpc "github.com/gagliardetto/solana-go/rpc"
-	"github.com/owlto-finance/utils-go/alert"
+	"github.com/owlto-dao/utils-go/alert"
 )
 
 type Backend int32

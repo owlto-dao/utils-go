@@ -2,7 +2,7 @@ package loader
 
 import (
 	"database/sql"
-	"github.com/owlto-finance/utils-go/log"
+	"github.com/owlto-dao/utils-go/log"
 )
 
 type MakerAddressGroupPO struct {

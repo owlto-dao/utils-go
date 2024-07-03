@@ -8,8 +8,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/owlto-finance/utils-go/alert"
-	"github.com/owlto-finance/utils-go/util"
+	"github.com/owlto-dao/utils-go/alert"
+	"github.com/owlto-dao/utils-go/util"
 )
 
 type BridgeFee struct {
