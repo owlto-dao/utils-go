@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/owlto-finance/utils-go/loader"
+	"github.com/owlto-dao/utils-go/loader"
 )
 
 type Rpc interface {

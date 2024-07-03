@@ -7,9 +7,9 @@ import (
 	"strings"
 
 	_ "github.com/gagliardetto/solana-go"
-	"github.com/owlto-finance/utils-go/loader"
-	"github.com/owlto-finance/utils-go/network"
-	"github.com/owlto-finance/utils-go/util"
+	"github.com/owlto-dao/utils-go/loader"
+	"github.com/owlto-dao/utils-go/network"
+	"github.com/owlto-dao/utils-go/util"
 )
 
 type BitcoinRpc struct {

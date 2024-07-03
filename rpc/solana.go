@@ -11,10 +11,10 @@ import (
 	"github.com/gagliardetto/solana-go"
 	"github.com/gagliardetto/solana-go/programs/token"
 	"github.com/gagliardetto/solana-go/rpc"
-	"github.com/owlto-finance/utils-go/loader"
-	"github.com/owlto-finance/utils-go/log"
-	sol "github.com/owlto-finance/utils-go/txn/solana"
-	"github.com/owlto-finance/utils-go/util"
+	"github.com/owlto-dao/utils-go/loader"
+	"github.com/owlto-dao/utils-go/log"
+	sol "github.com/owlto-dao/utils-go/txn/solana"
+	"github.com/owlto-dao/utils-go/util"
 )
 
 type SolanaRpc struct {

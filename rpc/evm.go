@@ -9,10 +9,10 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/owlto-finance/utils-go/abi/erc20"
-	"github.com/owlto-finance/utils-go/loader"
-	"github.com/owlto-finance/utils-go/log"
-	"github.com/owlto-finance/utils-go/util"
+	"github.com/owlto-dao/utils-go/abi/erc20"
+	"github.com/owlto-dao/utils-go/loader"
+	"github.com/owlto-dao/utils-go/log"
+	"github.com/owlto-dao/utils-go/util"
 )
 
 type EvmRpc struct {

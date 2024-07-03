@@ -1,4 +1,4 @@
-module github.com/owlto-finance/utils-go
+module github.com/owlto-dao/utils-go
 
 go 1.21
 
