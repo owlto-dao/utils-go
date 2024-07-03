@@ -2,16 +2,17 @@ package task
 
 import (
 	"context"
-	"log"
-	"runtime/debug"
 	"time"
+
+	"github.com/owlto-finance/utils-go/log"
+	"runtime/debug"
 )
 
 func RunTask(fn func()) {
 	go func() {
 		defer func() {
 			if r := recover(); r != nil {
-				log.Printf("Recovered from panic: %v, stack: %s", r, string(debug.Stack()))
+				log.Errorf("Recovered from panic: %v, stack: %s", r, string(debug.Stack()))
 			}
 		}()
 		fn()
@@ -19,6 +20,11 @@ func RunTask(fn func()) {
 }
 
 func PeriodicTask(ctx context.Context, task func(), waitSecond time.Duration) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.CtxErrorf(ctx, "Recovered from panic: %v, stack: %s", r, string(debug.Stack()))
+		}
+	}()
 	for {
 		task()
 		select {
