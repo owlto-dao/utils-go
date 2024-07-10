@@ -11,10 +11,10 @@ import (
 	"github.com/gagliardetto/solana-go"
 	"github.com/gagliardetto/solana-go/programs/token"
 	"github.com/gagliardetto/solana-go/rpc"
-	"github.com/owlto-dao/utils-go/loader"
-	"github.com/owlto-dao/utils-go/log"
-	sol "github.com/owlto-dao/utils-go/txn/solana"
-	"github.com/owlto-dao/utils-go/util"
+	"github.com/owlto-finance/utils-go/loader"
+	"github.com/owlto-finance/utils-go/log"
+	sol "github.com/owlto-finance/utils-go/txn/solana"
+	"github.com/owlto-finance/utils-go/util"
 )
 
 type SolanaRpc struct {
@@ -54,7 +54,7 @@ func (w *SolanaRpc) GetAccount(ctx context.Context, ownerAddr string) (*rpc.Acco
 }
 
 func (w *SolanaRpc) GetTokenInfo(ctx context.Context, tokenAddr string) (string, int32, error) {
-	if util.IsHexStringZero(tokenAddr) {
+	if util.IsHexStringZero(tokenAddr) || tokenAddr == "11111111111111111111111111111111" {
 		return "SOL", 9, nil
 	}
 	tokenInfo, ok := w.tokenInfoMgr.GetByChainNameTokenAddr(w.chainInfo.Name, tokenAddr)
@@ -71,16 +71,19 @@ func (w *SolanaRpc) GetTokenInfo(ctx context.Context, tokenAddr string) (string,
 	if err != nil {
 		return "", 0, err
 	}
+
+	symbol := "UNKNOWN"
 	rsp, err := w.GetClient().GetAccountInfo(
 		ctx,
 		metapk,
 	)
-	if err != nil {
-		return "", 0, err
-	}
-
-	meta, err := token_metadata.MetadataDeserialize(rsp.GetBinary())
-	if err != nil {
+	if err == nil {
+		meta, err := token_metadata.MetadataDeserialize(rsp.GetBinary())
+		if err != nil {
+			return "", 0, err
+		}
+		symbol = meta.Data.Symbol
+	} else if err != rpc.ErrNotFound {
 		return "", 0, err
 	}
 
@@ -98,8 +101,8 @@ func (w *SolanaRpc) GetTokenInfo(ctx context.Context, tokenAddr string) (string,
 		return "", 0, err
 	}
 
-	w.tokenInfoMgr.AddToken(w.chainInfo.Name, meta.Data.Symbol, tokenAddr, int32(mintAccount.Decimals))
-	return meta.Data.Symbol, int32(mintAccount.Decimals), nil
+	w.tokenInfoMgr.AddToken(w.chainInfo.Name, symbol, tokenAddr, int32(mintAccount.Decimals))
+	return symbol, int32(mintAccount.Decimals), nil
 
 }
 
@@ -143,7 +146,7 @@ func (w *SolanaRpc) GetBalance(ctx context.Context, ownerAddr string, tokenAddr 
 	ownerAddr = strings.TrimSpace(ownerAddr)
 	tokenAddr = strings.TrimSpace(tokenAddr)
 
-	if util.IsHexStringZero(tokenAddr) {
+	if util.IsHexStringZero(tokenAddr) || tokenAddr == "11111111111111111111111111111111" {
 		account, err := w.GetAccount(ctx, ownerAddr)
 		if err != nil {
 			if err == rpc.ErrNotFound {
