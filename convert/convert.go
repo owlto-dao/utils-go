@@ -49,6 +49,14 @@ func ConvertStringToPtrTime(value string) *time.Time {
 	return &t
 }
 
+func ConvertStringToFloat64(value string) float64 {
+	result, err := strconv.ParseFloat(value, 64)
+	if err != nil {
+		return 0
+	}
+	return result
+}
+
 func FormatDecimalString(inputStr string, decimalPlaces int) string {
 	if inputStr == "" {
 		return "0." + strings.Repeat("0", decimalPlaces)
