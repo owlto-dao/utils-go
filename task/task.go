@@ -29,6 +29,7 @@ func PeriodicTask(ctx context.Context, task func(), waitSecond time.Duration) {
 		task()
 		select {
 		case <-ctx.Done():
+			log.CtxInfof(ctx, "Canceled task...")
 			return
 		case <-time.After(waitSecond):
 		}
