@@ -107,3 +107,10 @@ func BigIntToUi(amount *big.Int, decimals int32) *big.Float {
 func IsEvmAddress(address string, chainID int32) bool {
 	return common.IsHexAddress(address) && chainID != 666666666 && chainID != 83797601
 }
+
+func MaskEVMAddress(address string) string {
+	if len(address) < 12 {
+		return address
+	}
+	return address[:6] + "****" + address[len(address)-4:]
+}
