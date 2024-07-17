@@ -35,3 +35,23 @@ func PeriodicTask(ctx context.Context, task func(), waitSecond time.Duration) {
 		}
 	}
 }
+
+func ScheduleDailyTask(ctx context.Context, fn func(), hour, minute, second int) {
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				log.CtxErrorf(ctx, "Recovered from panic: %v, stack: %s", r, string(debug.Stack()))
+			}
+		}()
+		for {
+			now := time.Now()
+			next := time.Date(now.Year(), now.Month(), now.Day(), hour, minute, second, 0, now.Location())
+			if next.Before(now) {
+				next = next.Add(24 * time.Hour)
+			}
+			duration := next.Sub(now)
+			time.Sleep(duration)
+			fn()
+		}
+	}()
+}

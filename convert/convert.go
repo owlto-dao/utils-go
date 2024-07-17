@@ -66,7 +66,7 @@ func FormatDecimalString(inputStr string, decimalPlaces int) string {
 
 	inputLen := len(inputStr)
 	if inputLen <= decimalPlaces {
-		return "0." + strings.Repeat("0", decimalPlaces-inputLen) + inputStr
+		return strings.TrimRight("0."+strings.Repeat("0", decimalPlaces-inputLen)+inputStr, "0")
 	}
 
 	pointPosition := inputLen - decimalPlaces
