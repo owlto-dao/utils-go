@@ -55,6 +55,15 @@ func (mgr *SrcTxManager) SetResult(txHash string, isInvalid int32, isVerified in
 	return nil
 }
 
+func (mgr *SrcTxManager) SetResultWithDstHash(txHash string, isInvalid int32, isVerified int32, dstHash string) error {
+	_, err := mgr.db.Exec("update t_src_transaction set is_invalid = ?, is_verified = ?, dst_tx_hash = ? where tx_hash = ? ", isInvalid, isVerified, dstHash, txHash)
+	if err != nil {
+		mgr.alerter.AlertText("update t_transfer is_invalid error :", err)
+		return err
+	}
+	return nil
+}
+
 func (mgr *SrcTxManager) Save(tx *SrcTx) error {
 	tx.TxHash = strings.TrimSpace(tx.TxHash)
 	tx.Sender = strings.TrimSpace(tx.Sender)
