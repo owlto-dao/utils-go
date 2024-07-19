@@ -185,15 +185,15 @@ func (mgr *DtcManager) GetIncludedDtc(tokenName string, fromChainName string, to
 		return 0, "", false
 	}
 
-  if value > (dtc.AmountLv3 + dtc.DtcLv3) {
+	if value > (dtc.AmountLv3 + dtc.DtcLv3) {
 		return dtc.DtcLv4, dtc.DtcLv4Str, true
-  } else if value > (dtc.AmountLv2 + dtc.DtcLv2) {
-     return dtc.DtcLv3, dtc.DtcLv3Str, true
-   } else if value > (dtc.AmountLv1 + dtc.DtcLv1) {
-     return dtc.DtcLv2, dtc.DtcLv2Str, true
-   } else {
-     return dtc.DtcLv1, dtc.DtcLv1Str, true
-   }
+	} else if value > (dtc.AmountLv2 + dtc.DtcLv2) {
+		return dtc.DtcLv3, dtc.DtcLv3Str, true
+	} else if value > (dtc.AmountLv1 + dtc.DtcLv1) {
+		return dtc.DtcLv2, dtc.DtcLv2Str, true
+	} else {
+		return dtc.DtcLv1, dtc.DtcLv1Str, true
+	}
 
 }
 
@@ -203,15 +203,15 @@ func (mgr *DtcManager) GetDtcToInclude(tokenName string, fromChainName string, t
 		return 0, "", false
 	}
 
-  if value > dtc.AmountLv3 {
-    return dtc.DtcLv4, dtc.DtcLv4Str, true
-  } else if value > dtc.AmountLv2 {
-    return dtc.DtcLv3, dtc.DtcLv3Str, true
-  } else if value > dtc.AmountLv1 {
-    return dtc.DtcLv2, dtc.DtcLv2Str, true
-  } else {
-    return dtc.DtcLv1, dtc.DtcLv1Str, true
-  }
+	if value > dtc.AmountLv3 {
+		return dtc.DtcLv4, dtc.DtcLv4Str, true
+	} else if value > dtc.AmountLv2 {
+		return dtc.DtcLv3, dtc.DtcLv3Str, true
+	} else if value > dtc.AmountLv1 {
+		return dtc.DtcLv2, dtc.DtcLv2Str, true
+	} else {
+		return dtc.DtcLv1, dtc.DtcLv1Str, true
+	}
 
 }
 
