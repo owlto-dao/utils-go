@@ -208,7 +208,7 @@ func (mgr *BridgeFeeManager) GetBridgeFeeDetail(tokenName string, fromChainName 
 		keepDecimal = bridgeFee.KeepDecimal
 	}
 
-	return bridgeFeeRatio, big.NewInt(0).Sub(value, mgr.FromUiString(value, bridgeFee.BridgeFeeRatioLv1, decimal, keepDecimal))
+	return bridgeFeeRatio, big.NewInt(0).Sub(value, mgr.FromUiString(value, bridgeFeeRatio, decimal, keepDecimal))
 
 }
 
