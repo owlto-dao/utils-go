@@ -192,6 +192,26 @@ func (mgr *BridgeFeeManager) FromUiString(amount *big.Int, bridgeFee int64, deci
 	return value
 }
 
+func (mgr *BridgeFeeManager) GetBridgeFeeDetail(tokenName string, fromChainName string, toChainName string, value *big.Int, decimal int32) (int64, *big.Int) {
+	bridgeFee, ok := mgr.GetBridgeFee(tokenName, fromChainName, toChainName)
+	if !ok {
+		return 0, big.NewInt(0)
+	}
+
+	bridgeFeeRatio, ok := mgr.GetIncludedBridgeFeeBigInt(tokenName, fromChainName, toChainName, value, decimal)
+	if !ok {
+		return 0, big.NewInt(0)
+	}
+
+	keepDecimal := decimal
+	if bridgeFee.KeepDecimal < decimal {
+		keepDecimal = bridgeFee.KeepDecimal
+	}
+
+	return bridgeFeeRatio, big.NewInt(0).Sub(value, mgr.FromUiString(value, bridgeFee.BridgeFeeRatioLv1, decimal, keepDecimal))
+
+}
+
 func (mgr *BridgeFeeManager) GetIncludedBridgeFeeBigInt(tokenName string, fromChainName string, toChainName string, value *big.Int, decimal int32) (int64, bool) {
 	bridgeFee, ok := mgr.GetBridgeFee(tokenName, fromChainName, toChainName)
 	if !ok {
