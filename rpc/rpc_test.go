@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/gagliardetto/solana-go/rpc"
-	"github.com/owlto-finance/utils-go/loader"
+	"github.com/owlto-dao/utils-go/loader"
 )
 
 func TestSol(t *testing.T) {
