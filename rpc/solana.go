@@ -53,26 +53,36 @@ func (w *SolanaRpc) GetAccount(ctx context.Context, ownerAddr string) (*rpc.Acco
 	}
 }
 
-func (w *SolanaRpc) GetTokenInfo(ctx context.Context, tokenAddr string) (string, int32, error) {
+func (w *SolanaRpc) GetTokenInfo(ctx context.Context, tokenAddr string) (loader.TokenInfo, error) {
 	if util.IsHexStringZero(tokenAddr) || tokenAddr == "11111111111111111111111111111111" {
-		return "SOL", 9, nil
+		return loader.TokenInfo{
+			TokenName:    "SOL",
+			ChainName:    w.chainInfo.Name,
+			TokenAddress: tokenAddr,
+			Decimals:     9,
+			FullName:     "Solana",
+			TotalSupply:  0,
+			Url:          "https://solana.com",
+		}, nil
 	}
 	tokenInfo, ok := w.tokenInfoMgr.GetByChainNameTokenAddr(w.chainInfo.Name, tokenAddr)
 	if ok {
-		return tokenInfo.TokenName, tokenInfo.Decimals, nil
+		return *tokenInfo, nil
 	}
 
 	mintpk, err := solana.PublicKeyFromBase58(tokenAddr)
 	if err != nil {
-		return "", 0, err
+		return loader.TokenInfo{}, err
 	}
 
 	metapk, _, err := solana.FindTokenMetadataAddress(mintpk)
 	if err != nil {
-		return "", 0, err
+		return loader.TokenInfo{}, err
 	}
 
 	symbol := "UNKNOWN"
+	fullName := "UNKNOWN"
+	site := ""
 	rsp, err := w.GetClient().GetAccountInfo(
 		ctx,
 		metapk,
@@ -80,11 +90,13 @@ func (w *SolanaRpc) GetTokenInfo(ctx context.Context, tokenAddr string) (string,
 	if err == nil {
 		meta, err := token_metadata.MetadataDeserialize(rsp.GetBinary())
 		if err != nil {
-			return "", 0, err
+			return loader.TokenInfo{}, err
 		}
 		symbol = meta.Data.Symbol
+		fullName = meta.Data.Name
+		site = meta.Data.Uri
 	} else if err != rpc.ErrNotFound {
-		return "", 0, err
+		return loader.TokenInfo{}, err
 	}
 
 	rsp, err = w.GetClient().GetAccountInfo(
@@ -92,17 +104,26 @@ func (w *SolanaRpc) GetTokenInfo(ctx context.Context, tokenAddr string) (string,
 		mintpk,
 	)
 	if err != nil {
-		return "", 0, err
+		return loader.TokenInfo{}, err
 	}
 	var mintAccount token.Mint
 	decoder := bin.NewBorshDecoder(rsp.GetBinary())
 	err = mintAccount.UnmarshalWithDecoder(decoder)
 	if err != nil {
-		return "", 0, err
+		return loader.TokenInfo{}, err
 	}
 
-	w.tokenInfoMgr.AddToken(w.chainInfo.Name, symbol, tokenAddr, int32(mintAccount.Decimals))
-	return symbol, int32(mintAccount.Decimals), nil
+	token := loader.TokenInfo{
+		TokenName:    symbol,
+		ChainName:    w.chainInfo.Name,
+		TokenAddress: tokenAddr,
+		Decimals:     int32(mintAccount.Decimals),
+		FullName:     fullName,
+		TotalSupply:  mintAccount.Supply,
+		Url:          site,
+	}
+	w.tokenInfoMgr.AddTokenInfo(token)
+	return token, nil
 
 }
 

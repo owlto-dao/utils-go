@@ -14,6 +14,10 @@ type TokenInfo struct {
 	ChainName    string
 	TokenAddress string
 	Decimals     int32
+	FullName     string
+	TotalSupply  uint64
+	Icon         string
+	Url          string
 }
 
 type TokenInfoManager struct {
@@ -43,6 +47,25 @@ func (mgr *TokenInfoManager) GetByChainNameTokenAddr(chainName string, tokenAddr
 		return token, ok
 	}
 	return nil, false
+}
+
+func (mgr *TokenInfoManager) AddTokenInfo(token TokenInfo) {
+	mgr.mutex.Lock()
+	defer mgr.mutex.Unlock()
+
+	tokenAddrs, ok := mgr.chainNameTokenAddrs[strings.ToLower(token.ChainName)]
+	if !ok {
+		tokenAddrs = make(map[string]*TokenInfo)
+		mgr.chainNameTokenAddrs[strings.ToLower(token.ChainName)] = tokenAddrs
+	}
+	tokenAddrs[strings.ToLower(token.TokenAddress)] = &token
+
+	tokenNames, ok := mgr.chainNameTokenNames[strings.ToLower(token.ChainName)]
+	if !ok {
+		tokenNames = make(map[string]*TokenInfo)
+		mgr.chainNameTokenNames[strings.ToLower(token.ChainName)] = tokenNames
+	}
+	tokenNames[strings.ToLower(token.TokenName)] = &token
 }
 
 func (mgr *TokenInfoManager) AddToken(chainName string, tokenName string, tokenAddr string, decimals int32) {

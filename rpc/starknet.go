@@ -32,8 +32,8 @@ func (w *StarknetRpc) Client() interface{} {
 	return w.chainInfo.Client
 }
 
-func (w *StarknetRpc) GetTokenInfo(ctx context.Context, tokenAddr string) (string, int32, error) {
-	return "", 0, fmt.Errorf("no impl")
+func (w *StarknetRpc) GetTokenInfo(ctx context.Context, tokenAddr string) (loader.TokenInfo, error) {
+	return loader.TokenInfo{}, fmt.Errorf("no impl")
 }
 
 func (w *StarknetRpc) GetBalance(ctx context.Context, ownerAddr string, tokenAddr string) (*big.Int, error) {
