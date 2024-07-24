@@ -22,8 +22,8 @@ func NewBitcoinRpc(chainInfo *loader.ChainInfo) *BitcoinRpc {
 	}
 }
 
-func (w *BitcoinRpc) GetTokenInfo(ctx context.Context, tokenAddr string) (string, int32, error) {
-	return "", 0, fmt.Errorf("no impl")
+func (w *BitcoinRpc) GetTokenInfo(ctx context.Context, tokenAddr string) (loader.TokenInfo, error) {
+	return loader.TokenInfo{}, fmt.Errorf("no impl")
 }
 
 func (w *BitcoinRpc) GetBalance(ctx context.Context, ownerAddr string, tokenAddr string) (*big.Int, error) {

@@ -2,21 +2,31 @@ package rpc
 
 import (
 	"context"
+	"encoding/binary"
 	"fmt"
 	"math/big"
 	"strings"
 
+	"github.com/blocto/solana-go-sdk/common"
 	"github.com/blocto/solana-go-sdk/program/metaplex/token_metadata"
 	bin "github.com/gagliardetto/binary"
 	"github.com/gagliardetto/solana-go"
 	"github.com/gagliardetto/solana-go/programs/token"
 	"github.com/gagliardetto/solana-go/rpc"
+	"github.com/near/borsh-go"
 	"github.com/owlto-dao/utils-go/loader"
 	"github.com/owlto-dao/utils-go/log"
 	sol "github.com/owlto-dao/utils-go/txn/solana"
 	"github.com/owlto-dao/utils-go/util"
 )
 
+type MetaData struct {
+	UpdateAuthority common.PublicKey
+	Mint            common.PublicKey
+	Name            string
+	Symbol          string
+	Uri             string
+}
 type SolanaRpc struct {
 	tokenInfoMgr *loader.TokenInfoManager
 	chainInfo    *loader.ChainInfo
@@ -53,26 +63,50 @@ func (w *SolanaRpc) GetAccount(ctx context.Context, ownerAddr string) (*rpc.Acco
 	}
 }
 
-func (w *SolanaRpc) GetTokenInfo(ctx context.Context, tokenAddr string) (string, int32, error) {
+func getExtensionData(extensionType uint16, tlvData []byte) []byte {
+	extensionTypeIndex := 0
+	for extensionTypeIndex+4 <= len(tlvData) {
+		entryType := binary.LittleEndian.Uint16(tlvData[extensionTypeIndex : extensionTypeIndex+2])
+		entryLength := binary.LittleEndian.Uint16(tlvData[extensionTypeIndex+2 : extensionTypeIndex+4])
+		typeIndex := extensionTypeIndex + 4
+		if entryType == extensionType && typeIndex+int(entryLength) <= len(tlvData) {
+			return tlvData[typeIndex : typeIndex+int(entryLength)]
+		}
+		extensionTypeIndex = typeIndex + int(entryLength)
+	}
+	return nil
+}
+
+func (w *SolanaRpc) GetTokenInfo(ctx context.Context, tokenAddr string) (loader.TokenInfo, error) {
 	if util.IsHexStringZero(tokenAddr) || tokenAddr == "11111111111111111111111111111111" {
-		return "SOL", 9, nil
+		return loader.TokenInfo{
+			TokenName:    "SOL",
+			ChainName:    w.chainInfo.Name,
+			TokenAddress: tokenAddr,
+			Decimals:     9,
+			FullName:     "Solana",
+			TotalSupply:  0,
+			Url:          "https://solana.com",
+		}, nil
 	}
 	tokenInfo, ok := w.tokenInfoMgr.GetByChainNameTokenAddr(w.chainInfo.Name, tokenAddr)
 	if ok {
-		return tokenInfo.TokenName, tokenInfo.Decimals, nil
+		return *tokenInfo, nil
 	}
 
 	mintpk, err := solana.PublicKeyFromBase58(tokenAddr)
 	if err != nil {
-		return "", 0, err
+		return loader.TokenInfo{}, err
 	}
 
 	metapk, _, err := solana.FindTokenMetadataAddress(mintpk)
 	if err != nil {
-		return "", 0, err
+		return loader.TokenInfo{}, err
 	}
 
 	symbol := "UNKNOWN"
+	fullName := "UNKNOWN"
+	uri := ""
 	rsp, err := w.GetClient().GetAccountInfo(
 		ctx,
 		metapk,
@@ -80,11 +114,13 @@ func (w *SolanaRpc) GetTokenInfo(ctx context.Context, tokenAddr string) (string,
 	if err == nil {
 		meta, err := token_metadata.MetadataDeserialize(rsp.GetBinary())
 		if err != nil {
-			return "", 0, err
+			return loader.TokenInfo{}, err
 		}
 		symbol = meta.Data.Symbol
+		fullName = meta.Data.Name
+		uri = meta.Data.Uri
 	} else if err != rpc.ErrNotFound {
-		return "", 0, err
+		return loader.TokenInfo{}, err
 	}
 
 	rsp, err = w.GetClient().GetAccountInfo(
@@ -92,17 +128,37 @@ func (w *SolanaRpc) GetTokenInfo(ctx context.Context, tokenAddr string) (string,
 		mintpk,
 	)
 	if err != nil {
-		return "", 0, err
+		return loader.TokenInfo{}, err
 	}
 	var mintAccount token.Mint
-	decoder := bin.NewBorshDecoder(rsp.GetBinary())
+	data := rsp.GetBinary()
+	decoder := bin.NewBorshDecoder(data)
 	err = mintAccount.UnmarshalWithDecoder(decoder)
 	if err != nil {
-		return "", 0, err
+		return loader.TokenInfo{}, err
 	}
 
-	w.tokenInfoMgr.AddToken(w.chainInfo.Name, symbol, tokenAddr, int32(mintAccount.Decimals))
-	return symbol, int32(mintAccount.Decimals), nil
+	if len(data) > 166 {
+		var metadata MetaData
+		err := borsh.Deserialize(&metadata, getExtensionData(19, []byte(data[166:])))
+		if err == nil {
+			symbol = metadata.Symbol
+			fullName = metadata.Name
+			uri = metadata.Uri
+		}
+	}
+
+	token := loader.TokenInfo{
+		TokenName:    symbol,
+		ChainName:    w.chainInfo.Name,
+		TokenAddress: tokenAddr,
+		Decimals:     int32(mintAccount.Decimals),
+		FullName:     fullName,
+		TotalSupply:  mintAccount.Supply,
+		Url:          uri,
+	}
+	w.tokenInfoMgr.AddTokenInfo(token)
+	return token, nil
 
 }
 
