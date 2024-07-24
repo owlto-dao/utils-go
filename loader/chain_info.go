@@ -66,6 +66,7 @@ type ChainInfoManager struct {
 	chainIdChains map[string]*ChainInfo
 	nameChains    map[string]*ChainInfo
 	netcodeChains map[int32]*ChainInfo
+	allChains     []*ChainInfo
 
 	db      *sql.DB
 	alerter alert.Alerter
@@ -126,6 +127,10 @@ func (mgr *ChainInfoManager) GetChainInfoByNetcode(netcode int32) (*ChainInfo, b
 	return chain, ok
 }
 
+func (mgr *ChainInfoManager) GetAllChains() []*ChainInfo {
+	return mgr.allChains
+}
+
 func (mgr *ChainInfoManager) LoadAllChains() {
 	// Query the database to select only id and name fields
 	rows, err := mgr.db.Query("SELECT id, chainid, real_chainid, name, alias_name, backend, eip1559, network_code, icon, block_interval, rpc_end_point, explorer_url, official_rpc, disabled, is_testnet, order_weight, gas_token_name, gas_token_decimal, transfer_contract_address, deposit_contract_address, layer1 FROM t_chain_info")
@@ -141,6 +146,7 @@ func (mgr *ChainInfoManager) LoadAllChains() {
 	netcodeChains := make(map[int32]*ChainInfo)
 	chainIdChains := make(map[string]*ChainInfo)
 	nameChains := make(map[string]*ChainInfo)
+	allChains := make([]*ChainInfo, 0)
 
 	counter := 0
 
@@ -187,6 +193,7 @@ func (mgr *ChainInfoManager) LoadAllChains() {
 			chainIdChains[strings.ToLower(chain.ChainId)] = &chain
 			nameChains[strings.ToLower(chain.Name)] = &chain
 			netcodeChains[chain.NetworkCode] = &chain
+			allChains = append(allChains, &chain)
 			counter++
 		}
 	}
@@ -202,6 +209,7 @@ func (mgr *ChainInfoManager) LoadAllChains() {
 	mgr.chainIdChains = chainIdChains
 	mgr.nameChains = nameChains
 	mgr.netcodeChains = netcodeChains
+	mgr.allChains = allChains
 	mgr.mutex.Unlock()
 	log.Println("load all chain info: ", counter)
 
