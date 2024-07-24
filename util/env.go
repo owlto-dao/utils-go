@@ -23,7 +23,3 @@ func SetEnv(ctx context.Context, env string) context.Context {
 func IsTestEnv(ctx context.Context) bool {
 	return GetEnv(ctx) == Test
 }
-
-func IsProdEnv(ctx context.Context) bool {
-	return GetEnv(ctx) == Prod
-}
