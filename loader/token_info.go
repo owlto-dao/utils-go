@@ -117,6 +117,10 @@ func (mgr *TokenInfoManager) GetTokenAddresses(chainName string) []string {
 	return addrs
 }
 
+func (mgr *TokenInfoManager) GetAllTokens() []*TokenInfo {
+	return mgr.allTokens
+}
+
 func (mgr *TokenInfoManager) MergeNativeTokens(chainManager ChainInfoManager) {
 	allIDs := chainManager.GetChainInfoIds()
 
