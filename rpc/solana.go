@@ -64,12 +64,13 @@ func (w *SolanaRpc) GetAccount(ctx context.Context, ownerAddr string) (*rpc.Acco
 }
 
 func getExtensionData(extensionType uint16, tlvData []byte) []byte {
+	fmt.Println(tlvData)
 	extensionTypeIndex := 0
 	for extensionTypeIndex+4 <= len(tlvData) {
 		entryType := binary.LittleEndian.Uint16(tlvData[extensionTypeIndex : extensionTypeIndex+2])
 		entryLength := binary.LittleEndian.Uint16(tlvData[extensionTypeIndex+2 : extensionTypeIndex+4])
 		typeIndex := extensionTypeIndex + 4
-		if entryType == extensionType {
+		if entryType == extensionType && typeIndex+int(entryLength) <= len(tlvData) {
 			return tlvData[typeIndex : typeIndex+int(entryLength)]
 		}
 		extensionTypeIndex = typeIndex + int(entryLength)
@@ -106,7 +107,7 @@ func (w *SolanaRpc) GetTokenInfo(ctx context.Context, tokenAddr string) (loader.
 
 	symbol := "UNKNOWN"
 	fullName := "UNKNOWN"
-	site := ""
+	uri := ""
 	rsp, err := w.GetClient().GetAccountInfo(
 		ctx,
 		metapk,
@@ -118,7 +119,7 @@ func (w *SolanaRpc) GetTokenInfo(ctx context.Context, tokenAddr string) (loader.
 		}
 		symbol = meta.Data.Symbol
 		fullName = meta.Data.Name
-		site = meta.Data.Uri
+		uri = meta.Data.Uri
 	} else if err != rpc.ErrNotFound {
 		return loader.TokenInfo{}, err
 	}
@@ -144,7 +145,7 @@ func (w *SolanaRpc) GetTokenInfo(ctx context.Context, tokenAddr string) (loader.
 		if err == nil {
 			symbol = metadata.Symbol
 			fullName = metadata.Name
-			site = metadata.Uri
+			uri = metadata.Uri
 		}
 	}
 
@@ -155,7 +156,7 @@ func (w *SolanaRpc) GetTokenInfo(ctx context.Context, tokenAddr string) (loader.
 		Decimals:     int32(mintAccount.Decimals),
 		FullName:     fullName,
 		TotalSupply:  mintAccount.Supply,
-		Url:          site,
+		Url:          uri,
 	}
 	w.tokenInfoMgr.AddTokenInfo(token)
 	return token, nil
