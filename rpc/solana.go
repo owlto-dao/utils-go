@@ -64,7 +64,6 @@ func (w *SolanaRpc) GetAccount(ctx context.Context, ownerAddr string) (*rpc.Acco
 }
 
 func getExtensionData(extensionType uint16, tlvData []byte) []byte {
-	fmt.Println(tlvData)
 	extensionTypeIndex := 0
 	for extensionTypeIndex+4 <= len(tlvData) {
 		entryType := binary.LittleEndian.Uint16(tlvData[extensionTypeIndex : extensionTypeIndex+2])
