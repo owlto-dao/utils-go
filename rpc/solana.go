@@ -2,21 +2,31 @@ package rpc
 
 import (
 	"context"
+	"encoding/binary"
 	"fmt"
 	"math/big"
 	"strings"
 
+	"github.com/blocto/solana-go-sdk/common"
 	"github.com/blocto/solana-go-sdk/program/metaplex/token_metadata"
 	bin "github.com/gagliardetto/binary"
 	"github.com/gagliardetto/solana-go"
 	"github.com/gagliardetto/solana-go/programs/token"
 	"github.com/gagliardetto/solana-go/rpc"
+	"github.com/near/borsh-go"
 	"github.com/owlto-dao/utils-go/loader"
 	"github.com/owlto-dao/utils-go/log"
 	sol "github.com/owlto-dao/utils-go/txn/solana"
 	"github.com/owlto-dao/utils-go/util"
 )
 
+type MetaData struct {
+	UpdateAuthority common.PublicKey
+	Mint            common.PublicKey
+	Name            string
+	Symbol          string
+	Uri             string
+}
 type SolanaRpc struct {
 	tokenInfoMgr *loader.TokenInfoManager
 	chainInfo    *loader.ChainInfo
@@ -51,6 +61,20 @@ func (w *SolanaRpc) GetAccount(ctx context.Context, ownerAddr string) (*rpc.Acco
 	} else {
 		return rsp.Value, nil
 	}
+}
+
+func getExtensionData(extensionType uint16, tlvData []byte) []byte {
+	extensionTypeIndex := 0
+	for extensionTypeIndex+4 <= len(tlvData) {
+		entryType := binary.LittleEndian.Uint16(tlvData[extensionTypeIndex : extensionTypeIndex+2])
+		entryLength := binary.LittleEndian.Uint16(tlvData[extensionTypeIndex+2 : extensionTypeIndex+4])
+		typeIndex := extensionTypeIndex + 4
+		if entryType == extensionType {
+			return tlvData[typeIndex : typeIndex+int(entryLength)]
+		}
+		extensionTypeIndex = typeIndex + int(entryLength)
+	}
+	return nil
 }
 
 func (w *SolanaRpc) GetTokenInfo(ctx context.Context, tokenAddr string) (loader.TokenInfo, error) {
@@ -107,10 +131,21 @@ func (w *SolanaRpc) GetTokenInfo(ctx context.Context, tokenAddr string) (loader.
 		return loader.TokenInfo{}, err
 	}
 	var mintAccount token.Mint
-	decoder := bin.NewBorshDecoder(rsp.GetBinary())
+	data := rsp.GetBinary()
+	decoder := bin.NewBorshDecoder(data)
 	err = mintAccount.UnmarshalWithDecoder(decoder)
 	if err != nil {
 		return loader.TokenInfo{}, err
+	}
+
+	if len(data) > 166 {
+		var metadata MetaData
+		err := borsh.Deserialize(&metadata, getExtensionData(19, []byte(data[166:])))
+		if err == nil {
+			symbol = metadata.Symbol
+			fullName = metadata.Name
+			site = metadata.Uri
+		}
 	}
 
 	token := loader.TokenInfo{
