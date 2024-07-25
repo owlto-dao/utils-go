@@ -136,7 +136,6 @@ func (mgr *TokenInfoManager) MergeNativeTokens(chainManager ChainInfoManager) {
 		token.TokenAddress = "0x0000000000000000000000000000000000000000"
 		token.TokenName = chainInfo.GasTokenName
 		token.Decimals = chainInfo.GasTokenDecimal
-		mgr.allTokens = append(mgr.allTokens, &token)
 
 		tokenAddrs, ok := mgr.chainNameTokenAddrs[strings.ToLower(token.ChainName)]
 		if !ok {
@@ -152,6 +151,7 @@ func (mgr *TokenInfoManager) MergeNativeTokens(chainManager ChainInfoManager) {
 		if !ok {
 			tokenNames[strings.ToLower(token.TokenName)] = &token
 			tokenAddrs[strings.ToLower(token.TokenAddress)] = &token
+			mgr.allTokens = append(mgr.allTokens, &token)
 		}
 
 	}
