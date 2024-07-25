@@ -23,6 +23,7 @@ type TokenInfo struct {
 type TokenInfoManager struct {
 	chainNameTokenAddrs map[string]map[string]*TokenInfo
 	chainNameTokenNames map[string]map[string]*TokenInfo
+	allTokens           []*TokenInfo
 	db                  *sql.DB
 	alerter             alert.Alerter
 	mutex               *sync.RWMutex
@@ -116,6 +117,10 @@ func (mgr *TokenInfoManager) GetTokenAddresses(chainName string) []string {
 	return addrs
 }
 
+func (mgr *TokenInfoManager) GetAllTokens() []*TokenInfo {
+	return mgr.allTokens
+}
+
 func (mgr *TokenInfoManager) MergeNativeTokens(chainManager ChainInfoManager) {
 	allIDs := chainManager.GetChainInfoIds()
 
@@ -131,6 +136,7 @@ func (mgr *TokenInfoManager) MergeNativeTokens(chainManager ChainInfoManager) {
 		token.TokenAddress = "0x0000000000000000000000000000000000000000"
 		token.TokenName = chainInfo.GasTokenName
 		token.Decimals = chainInfo.GasTokenDecimal
+		mgr.allTokens = append(mgr.allTokens, &token)
 
 		tokenAddrs, ok := mgr.chainNameTokenAddrs[strings.ToLower(token.ChainName)]
 		if !ok {
@@ -165,6 +171,7 @@ func (mgr *TokenInfoManager) LoadAllToken() {
 
 	chainNameTokenAddrs := make(map[string]map[string]*TokenInfo)
 	chainNameTokenNames := make(map[string]map[string]*TokenInfo)
+	allTokens := make([]*TokenInfo, 0)
 	counter := 0
 
 	// Iterate over the result set
@@ -191,7 +198,7 @@ func (mgr *TokenInfoManager) LoadAllToken() {
 				chainNameTokenNames[strings.ToLower(token.ChainName)] = tokenNames
 			}
 			tokenNames[strings.ToLower(token.TokenName)] = &token
-
+			allTokens = append(allTokens, &token)
 			counter++
 		}
 	}
@@ -205,6 +212,7 @@ func (mgr *TokenInfoManager) LoadAllToken() {
 	mgr.mutex.Lock()
 	mgr.chainNameTokenAddrs = chainNameTokenAddrs
 	mgr.chainNameTokenNames = chainNameTokenNames
+	mgr.allTokens = allTokens
 	mgr.mutex.Unlock()
 	log.Println("load all token info: ", counter)
 
