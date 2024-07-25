@@ -19,10 +19,11 @@ type MakerAddressPO struct {
 }
 
 type MakerAddress struct {
-	GroupId   int64
-	GroupName string
-	Env       string
-	Addresses []*MakerAddressPO
+	GroupId           int64
+	GroupName         string
+	Env               string
+	Addresses         []*MakerAddressPO
+	SecurityAddresses []*MakerAddressPO
 }
 
 type MakerAddressManager struct {
@@ -104,6 +105,31 @@ func (mgr *MakerAddressManager) LoadAllMakerAddresses() {
 
 	if err = addressRows.Err(); err != nil {
 		log.Errorf("get next maker_addresses row error: %v", err)
+		return
+	}
+
+	// Query the database for all security addresses
+	securityAddressRows, err := mgr.db.Query("SELECT id, group_id, backend, address FROM t_security_addresses")
+	if err != nil || securityAddressRows == nil {
+		log.Errorf("select security_addresses error: %v", err)
+		return
+	}
+	defer securityAddressRows.Close()
+
+	for securityAddressRows.Next() {
+		var securityAddress MakerAddressPO
+		if err = securityAddressRows.Scan(&securityAddress.Id, &securityAddress.GroupId, &securityAddress.Backend, &securityAddress.Address); err != nil {
+			log.Errorf("scan security_addresses row error: %v", err)
+			continue
+		}
+
+		if group, ok := groups[securityAddress.GroupId]; ok {
+			group.SecurityAddresses = append(group.SecurityAddresses, &securityAddress)
+		}
+	}
+
+	if err = securityAddressRows.Err(); err != nil {
+		log.Errorf("get next security_addresses row error: %v", err)
 		return
 	}
 
