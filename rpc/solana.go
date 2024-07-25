@@ -43,7 +43,24 @@ func (w *SolanaRpc) GetClient() *rpc.Client {
 	return w.chainInfo.Client.(*rpc.Client)
 }
 
-func (w *SolanaRpc) GetAccount(ctx context.Context, ownerAddr string) (*rpc.Account, error) {
+func (w *SolanaRpc) GetAccountInfo(ctx context.Context, owner solana.PublicKey) (*rpc.GetAccountInfoResult, error) {
+	rsp, err := w.GetClient().GetAccountInfoWithOpts(
+		ctx,
+		owner,
+		&rpc.GetAccountInfoOpts{
+			Commitment: rpc.CommitmentConfirmed,
+			DataSlice:  nil,
+		},
+	)
+
+	if err != nil {
+		return nil, err
+	} else {
+		return rsp, nil
+	}
+}
+
+func (w *SolanaRpc) GetStrAccountInfo(ctx context.Context, ownerAddr string) (*rpc.GetAccountInfoResult, error) {
 	ownerAddr = strings.TrimSpace(ownerAddr)
 
 	ownerpk, err := solana.PublicKeyFromBase58(ownerAddr)
@@ -51,16 +68,8 @@ func (w *SolanaRpc) GetAccount(ctx context.Context, ownerAddr string) (*rpc.Acco
 		return nil, err
 	}
 
-	rsp, err := w.GetClient().GetAccountInfo(
-		ctx,
-		ownerpk,
-	)
+	return w.GetAccountInfo(ctx, ownerpk)
 
-	if err != nil {
-		return nil, err
-	} else {
-		return rsp.Value, nil
-	}
 }
 
 func getExtensionData(extensionType uint16, tlvData []byte) []byte {
@@ -107,7 +116,7 @@ func (w *SolanaRpc) GetTokenInfo(ctx context.Context, tokenAddr string) (loader.
 	symbol := "UNKNOWN"
 	fullName := "UNKNOWN"
 	uri := ""
-	rsp, err := w.GetClient().GetAccountInfo(
+	rsp, err := w.GetAccountInfo(
 		ctx,
 		metapk,
 	)
@@ -123,7 +132,7 @@ func (w *SolanaRpc) GetTokenInfo(ctx context.Context, tokenAddr string) (loader.
 		return loader.TokenInfo{}, err
 	}
 
-	rsp, err = w.GetClient().GetAccountInfo(
+	rsp, err = w.GetAccountInfo(
 		ctx,
 		mintpk,
 	)
@@ -180,7 +189,7 @@ func (w *SolanaRpc) GetSplAccount(ctx context.Context, ownerAddr string, tokenAd
 		return nil, err
 	}
 
-	rsp, err := w.GetClient().GetAccountInfo(
+	rsp, err := w.GetAccountInfo(
 		ctx,
 		ownerAta,
 	)
@@ -203,14 +212,14 @@ func (w *SolanaRpc) GetBalance(ctx context.Context, ownerAddr string, tokenAddr 
 	tokenAddr = strings.TrimSpace(tokenAddr)
 
 	if util.IsHexStringZero(tokenAddr) || tokenAddr == "11111111111111111111111111111111" {
-		account, err := w.GetAccount(ctx, ownerAddr)
+		accountInfo, err := w.GetStrAccountInfo(ctx, ownerAddr)
 		if err != nil {
 			if err == rpc.ErrNotFound {
 				return big.NewInt(0), nil
 			}
 			return nil, err
 		}
-		return big.NewInt(int64(account.Lamports)), nil
+		return big.NewInt(int64(accountInfo.Value.Lamports)), nil
 	} else {
 		sqlAccount, err := w.GetSplAccount(ctx, ownerAddr, tokenAddr)
 		if err != nil {
