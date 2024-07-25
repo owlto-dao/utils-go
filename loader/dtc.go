@@ -185,11 +185,11 @@ func (mgr *DtcManager) GetIncludedDtc(tokenName string, fromChainName string, to
 		return 0, "", false
 	}
 
-	if value >= (dtc.AmountLv3 + dtc.DtcLv3) {
+	if value > (dtc.AmountLv3 + dtc.DtcLv3) {
 		return dtc.DtcLv4, dtc.DtcLv4Str, true
-	} else if value >= (dtc.AmountLv2 + dtc.DtcLv2) {
+	} else if value > (dtc.AmountLv2 + dtc.DtcLv2) {
 		return dtc.DtcLv3, dtc.DtcLv3Str, true
-	} else if value >= (dtc.AmountLv1 + dtc.DtcLv1) {
+	} else if value > (dtc.AmountLv1 + dtc.DtcLv1) {
 		return dtc.DtcLv2, dtc.DtcLv2Str, true
 	} else {
 		return dtc.DtcLv1, dtc.DtcLv1Str, true
@@ -203,11 +203,11 @@ func (mgr *DtcManager) GetDtcToInclude(tokenName string, fromChainName string, t
 		return 0, "", false
 	}
 
-	if value >= dtc.AmountLv3 {
+	if value > dtc.AmountLv3 {
 		return dtc.DtcLv4, dtc.DtcLv4Str, true
-	} else if value >= dtc.AmountLv2 {
+	} else if value > dtc.AmountLv2 {
 		return dtc.DtcLv3, dtc.DtcLv3Str, true
-	} else if value >= dtc.AmountLv1 {
+	} else if value > dtc.AmountLv1 {
 		return dtc.DtcLv2, dtc.DtcLv2Str, true
 	} else {
 		return dtc.DtcLv1, dtc.DtcLv1Str, true
@@ -239,11 +239,11 @@ func (mgr *DtcManager) GetIncludedDtcBigInt(tokenName string, fromChainName stri
 		return nil, false
 	}
 
-	if value.Cmp(mgr.FromUiString(dtc.AmountLv1Str, dtc.DtcLv1Str, decimals)) < 0 {
+	if value.Cmp(mgr.FromUiString(dtc.AmountLv1Str, dtc.DtcLv1Str, decimals)) <= 0 {
 		return mgr.FromUiString("", dtc.DtcLv1Str, decimals), true
-	} else if value.Cmp(mgr.FromUiString(dtc.AmountLv2Str, dtc.DtcLv2Str, decimals)) < 0 {
+	} else if value.Cmp(mgr.FromUiString(dtc.AmountLv2Str, dtc.DtcLv2Str, decimals)) <= 0 {
 		return mgr.FromUiString("", dtc.DtcLv2Str, decimals), true
-	} else if value.Cmp(mgr.FromUiString(dtc.AmountLv3Str, dtc.DtcLv3Str, decimals)) < 0 {
+	} else if value.Cmp(mgr.FromUiString(dtc.AmountLv3Str, dtc.DtcLv3Str, decimals)) <= 0 {
 		return mgr.FromUiString("", dtc.DtcLv3Str, decimals), true
 	} else {
 		return mgr.FromUiString("", dtc.DtcLv4Str, decimals), true
@@ -256,11 +256,11 @@ func (mgr *DtcManager) GetDtcToIncludeBigInt(tokenName string, fromChainName str
 		return nil, false
 	}
 
-	if value.Cmp(mgr.FromUiString(dtc.AmountLv1Str, "", decimals)) < 0 {
+	if value.Cmp(mgr.FromUiString(dtc.AmountLv1Str, "", decimals)) <= 0 {
 		return mgr.FromUiString("", dtc.DtcLv1Str, decimals), true
-	} else if value.Cmp(mgr.FromUiString(dtc.AmountLv2Str, "", decimals)) < 0 {
+	} else if value.Cmp(mgr.FromUiString(dtc.AmountLv2Str, "", decimals)) <= 0 {
 		return mgr.FromUiString("", dtc.DtcLv2Str, decimals), true
-	} else if value.Cmp(mgr.FromUiString(dtc.AmountLv3Str, "", decimals)) < 0 {
+	} else if value.Cmp(mgr.FromUiString(dtc.AmountLv3Str, "", decimals)) <= 0 {
 		return mgr.FromUiString("", dtc.DtcLv3Str, decimals), true
 	} else {
 		return mgr.FromUiString("", dtc.DtcLv4Str, decimals), true
