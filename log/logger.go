@@ -39,8 +39,8 @@ func init() {
 	// Configure Lumberjack
 	lumberjackLogger := &lumberjack.Logger{
 		Filename:   logFilePath,
-		MaxSize:    100, // Max size in MB
-		MaxBackups: 3,
+		MaxSize:    500, // Max size in MB
+		MaxBackups: 5,
 		MaxAge:     28, // Max age in days
 	}
 
