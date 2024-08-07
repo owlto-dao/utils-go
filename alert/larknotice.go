@@ -3,9 +3,10 @@ package alert
 import (
 	"context"
 	"fmt"
+	"strings"
+
 	"github.com/go-lark/lark"
 	"github.com/owlto-dao/utils-go/convert"
-	"strings"
 )
 
 var LarkBot *Bot
