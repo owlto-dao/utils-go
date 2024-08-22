@@ -12,6 +12,9 @@ import (
 
 func GetChecksumAddress(address string) (string, error) {
 	address = strings.TrimSpace(address)
+	if len(address) == 0 {
+		return "", fmt.Errorf("empty address")
+	}
 	if !strings.HasPrefix(address, "0x") && !strings.HasPrefix(address, "0X") {
 		return address, nil
 	}
