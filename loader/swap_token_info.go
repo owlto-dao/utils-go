@@ -149,7 +149,7 @@ func (mgr *SwapTokenInfoManager) MergeNativeTokens(chainManager ChainInfoManager
 
 func (mgr *SwapTokenInfoManager) LoadAllToken() {
 	// Query the database to select only id and name fields
-	rows, err := mgr.db.Query("SELECT token_name, chain_name, token_address, decimals FROM t_swap_token_info")
+	rows, err := mgr.db.Query("SELECT token_name, chain_name, token_address, decimals, icon FROM t_swap_token_info")
 
 	if err != nil || rows == nil {
 		mgr.alerter.AlertText("select t_swap_token_info error", err)
@@ -167,7 +167,7 @@ func (mgr *SwapTokenInfoManager) LoadAllToken() {
 	for rows.Next() {
 		var token TokenInfo
 
-		if err := rows.Scan(&token.TokenName, &token.ChainName, &token.TokenAddress, &token.Decimals); err != nil {
+		if err := rows.Scan(&token.TokenName, &token.ChainName, &token.TokenAddress, &token.Decimals, &token.Icon); err != nil {
 			mgr.alerter.AlertText("scan t_swap_token_info row error", err)
 		} else {
 			token.ChainName = strings.TrimSpace(token.ChainName)
