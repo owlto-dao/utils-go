@@ -38,7 +38,24 @@ func (w *EvmRpc) Backend() int32 {
 }
 
 func (w *EvmRpc) GetTokenInfo(ctx context.Context, tokenAddr string) (loader.TokenInfo, error) {
-	return loader.TokenInfo{}, fmt.Errorf("no impl")
+	econtract, err := erc20.NewErc20(common.HexToAddress(tokenAddr), w.GetClient())
+	if err != nil {
+		return loader.TokenInfo{}, err
+	}
+	symbol, err := econtract.Symbol(nil)
+	if err != nil {
+		return loader.TokenInfo{}, err
+	}
+	decimals, err := econtract.Decimals(nil)
+	if err != nil {
+		return loader.TokenInfo{}, err
+	}
+	return loader.TokenInfo{
+		TokenName:    symbol,
+		ChainName:    w.chainInfo.Name,
+		TokenAddress: tokenAddr,
+		Decimals:     int32(decimals),
+	}, nil
 }
 
 func (w *EvmRpc) GetAllowance(ctx context.Context, ownerAddr string, tokenAddr string, spenderAddr string) (*big.Int, error) {
