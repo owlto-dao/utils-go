@@ -24,6 +24,7 @@ const (
 	ZksliteBackend
 	TonBackend
 	CosmosBackend
+	NetworkTypeBfc
 )
 
 type ChainInfo struct {
