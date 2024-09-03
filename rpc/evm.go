@@ -148,6 +148,10 @@ func (w *EvmRpc) GetTokenInfo(ctx context.Context, tokenAddr string) (loader.Tok
 	}
 	totalSupply := new(big.Int).SetBytes(totalSupplyBytes)
 
+	if decimals.Cmp(common.Big0) <= 0 || len(symbol) == 0 {
+		return loader.TokenInfo{}, fmt.Errorf("not found")
+	}
+
 	ti := loader.TokenInfo{
 		TokenName:    string(symbol),
 		ChainName:    w.chainInfo.Name,
