@@ -4,14 +4,21 @@ import (
 	"context"
 	"testing"
 
+	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/gagliardetto/solana-go/rpc"
 	"github.com/owlto-dao/utils-go/loader"
 )
 
 func TestSol(t *testing.T) {
+	t.Log("test evm...")
+	client, _ := ethclient.Dial("https://bsc-dataseed.bnbchain.org")
+	evmRpc := NewEvmRpc(&loader.ChainInfo{Name: "BnbMainnet", Client: client})
+	t.Log(evmRpc.GetTokenInfo(context.TODO(), "0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82"))
+	t.Log(evmRpc.GetTokenInfo(context.TODO(), "0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82"))
+
 	t.Log("test sol...")
 	solRpc := NewSolanaRpc(&loader.ChainInfo{Name: "SolanaMainnet", Client: rpc.New("https://api.mainnet-beta.solana.com")})
-	t.Log(solRpc.GetTokenInfo(context.TODO(), "ZyABVe2KLmc1GeGobLkJSjr3U5FPRJVymLX67cojUBm"))
+	t.Log(solRpc.GetTokenInfo(context.TODO(), "4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R"))
 	t.Log(solRpc.GetTokenInfo(context.TODO(), "zzsReZFpYxg1xYBQbfRKHytGYFEHpPPUCa4NtrHp5pE"))
 	t.Log(solRpc.GetTokenInfo(context.TODO(), "zzMSBu58juvqZbYnqhVMdSFwguiw8oL17T4q3dMWGaN"))
 	t.Log(solRpc.GetTokenInfo(context.TODO(), "J8qZijXxrypJin5Y27qcTvNjmd5ybF44NJdDKCSkXxWv"))

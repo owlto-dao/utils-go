@@ -3,6 +3,7 @@ package loader
 import (
 	"database/sql"
 	"log"
+	"math/big"
 	"strings"
 	"sync"
 
@@ -15,7 +16,7 @@ type TokenInfo struct {
 	TokenAddress string
 	Decimals     int32
 	FullName     string
-	TotalSupply  uint64
+	TotalSupply  *big.Int
 	Icon         string
 	Url          string
 }

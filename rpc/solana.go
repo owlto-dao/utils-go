@@ -94,7 +94,7 @@ func (w *SolanaRpc) GetTokenInfo(ctx context.Context, tokenAddr string) (loader.
 			TokenAddress: tokenAddr,
 			Decimals:     9,
 			FullName:     "Solana",
-			TotalSupply:  0,
+			TotalSupply:  big.NewInt(0),
 			Url:          "https://solana.com",
 		}, nil
 	}
@@ -163,7 +163,7 @@ func (w *SolanaRpc) GetTokenInfo(ctx context.Context, tokenAddr string) (loader.
 		TokenAddress: tokenAddr,
 		Decimals:     int32(mintAccount.Decimals),
 		FullName:     fullName,
-		TotalSupply:  mintAccount.Supply,
+		TotalSupply:  big.NewInt(0).SetUint64(mintAccount.Supply),
 		Url:          uri,
 	}
 	w.tokenInfoMgr.AddTokenInfo(token)
