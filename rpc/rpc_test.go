@@ -15,6 +15,7 @@ func TestSol(t *testing.T) {
 	evmRpc := NewEvmRpc(&loader.ChainInfo{Name: "BnbMainnet", Client: client})
 	t.Log(evmRpc.GetTokenInfo(context.TODO(), "0x1E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82"))
 	t.Log(evmRpc.GetTokenInfo(context.TODO(), "0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82"))
+	t.Log(evmRpc.GetBalanceAtBlockNumber(context.TODO(), "0xcD98738Cc9F411cD4C001e883c6e69F108A68acd", "0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82", 41929855))
 
 	t.Log("test sol...")
 	solRpc := NewSolanaRpc(&loader.ChainInfo{Name: "SolanaMainnet", Client: rpc.New("https://api.mainnet-beta.solana.com")})

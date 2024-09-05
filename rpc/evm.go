@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
@@ -175,6 +176,35 @@ func (w *EvmRpc) GetAllowance(ctx context.Context, ownerAddr string, tokenAddr s
 		return nil, err
 	}
 	return allowance, nil
+}
+
+func (w *EvmRpc) GetBalanceAtBlockNumber(ctx context.Context, ownerAddr string, tokenAddr string, blockNumber int64) (*big.Int, error) {
+	ownerAddr = strings.TrimSpace(ownerAddr)
+	tokenAddr = strings.TrimSpace(tokenAddr)
+
+	if util.IsHexStringZero(tokenAddr) {
+		nativeBalance, err := w.GetClient().BalanceAt(ctx, common.HexToAddress(ownerAddr), big.NewInt(blockNumber))
+		if err != nil {
+			return nil, err
+		}
+		return nativeBalance, nil
+	} else {
+		econtract, err := erc20.NewErc20(common.HexToAddress(tokenAddr), w.GetClient())
+		if err != nil {
+			return nil, err
+		}
+
+		balance, err := econtract.BalanceOf(&bind.CallOpts{
+			Pending:     false,
+			Context:     ctx,
+			BlockNumber: big.NewInt(blockNumber),
+		}, common.HexToAddress(ownerAddr))
+
+		if err != nil {
+			return nil, err
+		}
+		return balance, nil
+	}
 }
 
 func (w *EvmRpc) GetBalance(ctx context.Context, ownerAddr string, tokenAddr string) (*big.Int, error) {

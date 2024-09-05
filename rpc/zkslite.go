@@ -44,6 +44,10 @@ func (w *ZksliteRpc) IsLastCharSlash(s string) bool {
 	return s[len(s)-1] == '/'
 }
 
+func (w *ZksliteRpc) GetBalanceAtBlockNumber(ctx context.Context, ownerAddr string, tokenAddr string, blockNumber int64) (*big.Int, error) {
+	return w.GetBalance(ctx, ownerAddr, tokenAddr)
+}
+
 func (w *ZksliteRpc) GetBalance(ctx context.Context, ownerAddr string, tokenAddr string) (*big.Int, error) {
 	ownerAddr = strings.TrimSpace(ownerAddr)
 	tokenAddr = strings.TrimSpace(tokenAddr)

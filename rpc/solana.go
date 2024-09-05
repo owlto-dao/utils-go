@@ -207,6 +207,10 @@ func (w *SolanaRpc) GetSplAccount(ctx context.Context, ownerAddr string, tokenAd
 	}
 }
 
+func (w *SolanaRpc) GetBalanceAtBlockNumber(ctx context.Context, ownerAddr string, tokenAddr string, blockNumber int64) (*big.Int, error) {
+	return w.GetBalance(ctx, ownerAddr, tokenAddr)
+}
+
 func (w *SolanaRpc) GetBalance(ctx context.Context, ownerAddr string, tokenAddr string) (*big.Int, error) {
 	ownerAddr = strings.TrimSpace(ownerAddr)
 	tokenAddr = strings.TrimSpace(tokenAddr)

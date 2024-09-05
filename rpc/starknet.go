@@ -36,6 +36,10 @@ func (w *StarknetRpc) GetTokenInfo(ctx context.Context, tokenAddr string) (loade
 	return loader.TokenInfo{}, fmt.Errorf("no impl")
 }
 
+func (w *StarknetRpc) GetBalanceAtBlockNumber(ctx context.Context, ownerAddr string, tokenAddr string, blockNumber int64) (*big.Int, error) {
+	return w.GetBalance(ctx, ownerAddr, tokenAddr)
+}
+
 func (w *StarknetRpc) GetBalance(ctx context.Context, ownerAddr string, tokenAddr string) (*big.Int, error) {
 	ownerAddr = strings.TrimSpace(ownerAddr)
 	tokenAddr = strings.TrimSpace(tokenAddr)

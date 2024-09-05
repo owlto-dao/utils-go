@@ -26,6 +26,10 @@ func (w *BitcoinRpc) GetTokenInfo(ctx context.Context, tokenAddr string) (loader
 	return loader.TokenInfo{}, fmt.Errorf("no impl")
 }
 
+func (w *BitcoinRpc) GetBalanceAtBlockNumber(ctx context.Context, ownerAddr string, tokenAddr string, blockNumber int64) (*big.Int, error) {
+	return w.GetBalance(ctx, ownerAddr, tokenAddr)
+}
+
 func (w *BitcoinRpc) GetBalance(ctx context.Context, ownerAddr string, tokenAddr string) (*big.Int, error) {
 	ownerAddr = strings.TrimSpace(ownerAddr)
 	tokenAddr = strings.TrimSpace(tokenAddr)
