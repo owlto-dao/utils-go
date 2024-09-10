@@ -90,7 +90,7 @@ func (c *Client) DoPost(ctx context.Context, urlStr string, data interface{}, he
 		return err
 	}
 
-	if err = json.Unmarshal(body, &response); err != nil {
+	if err = json.Unmarshal(body, response); err != nil {
 		return err
 	}
 	return nil
@@ -113,7 +113,7 @@ func (c *Client) doRequest(req *http.Request, response interface{}) error {
 		return err
 	}
 
-	err = json.Unmarshal(body, &response)
+	err = json.Unmarshal(body, response)
 	if err != nil {
 		return err
 	}
