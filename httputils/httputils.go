@@ -26,10 +26,10 @@ func NewClient(timeout time.Duration) *Client {
 }
 
 // DoGet sends an HTTP GET request with context support and headers.
-func (c *Client) DoGet(ctx context.Context, url string, headers map[string]string) (string, error) {
+func (c *Client) DoGet(ctx context.Context, url string, headers map[string]string, response interface{}) error {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	// Add headers
@@ -37,11 +37,11 @@ func (c *Client) DoGet(ctx context.Context, url string, headers map[string]strin
 		req.Header.Add(key, value)
 	}
 
-	return c.doRequest(req)
+	return c.doRequest(req, response)
 }
 
 // DoPost 发送一个 HTTP POST 请求，支持 JSON、表单和纯文本数据
-func (c *Client) DoPost(ctx context.Context, urlStr string, data interface{}, headers map[string]string) (string, error) {
+func (c *Client) DoPost(ctx context.Context, urlStr string, data interface{}, headers map[string]string, response interface{}) error {
 	var body []byte
 	var err error
 	var contentType string
@@ -51,7 +51,7 @@ func (c *Client) DoPost(ctx context.Context, urlStr string, data interface{}, he
 	case map[string]interface{}: // 如果是 JSON 数据
 		body, err = json.Marshal(v)
 		if err != nil {
-			return "", err
+			return err
 		}
 		contentType = "application/json"
 	case url.Values: // 如果是表单数据
@@ -61,13 +61,13 @@ func (c *Client) DoPost(ctx context.Context, urlStr string, data interface{}, he
 		body = []byte(v)
 		contentType = "text/plain"
 	default:
-		return "", errors.New("不支持的数据类型")
+		return errors.New("不支持的数据类型")
 	}
 
 	// 创建 HTTP 请求
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, urlStr, bytes.NewBuffer(body))
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	req.Header.Set("Content-Type", contentType)
@@ -77,38 +77,45 @@ func (c *Client) DoPost(ctx context.Context, urlStr string, data interface{}, he
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
-		return "", err
+		return err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return "", errors.New("请求失败，状态码: " + resp.Status)
+		return errors.New("请求失败，状态码: " + resp.Status)
 	}
 
 	body, err = io.ReadAll(resp.Body)
 	if err != nil {
-		return "", err
+		return err
 	}
 
-	return string(body), nil
+	if err = json.Unmarshal(body, &response); err != nil {
+		return err
+	}
+	return nil
 }
 
 // Helper function for executing HTTP requests and handling responses.
-func (c *Client) doRequest(req *http.Request) (string, error) {
+func (c *Client) doRequest(req *http.Request, response interface{}) error {
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
-		return "", err
+		return err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return "", errors.New("failed with status: " + resp.Status)
+		return errors.New("failed with status: " + resp.Status)
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return "", err
+		return err
 	}
 
-	return string(body), nil
+	err = json.Unmarshal(body, &response)
+	if err != nil {
+		return err
+	}
+	return nil
 }
