@@ -25,7 +25,7 @@ require (
 	github.com/prometheus/common v0.46.0
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/viper v1.18.2
-	github.com/stretchr/testify v1.8.4
+	github.com/stretchr/testify v1.9.0
 	golang.org/x/sync v0.5.0
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
 )
