@@ -1,6 +1,8 @@
 module github.com/owlto-dao/utils-go
 
-go 1.21
+go 1.21.3
+
+toolchain go1.22.5
 
 require (
 	github.com/NethermindEth/juno v0.3.1
@@ -16,6 +18,8 @@ require (
 	github.com/go-lark/lark v1.14.1
 	github.com/hashicorp/go-metrics v0.5.3
 	github.com/mitchellh/mapstructure v1.5.0
+	github.com/near/borsh-go v0.3.2-0.20220516180422-1ff87d108454
+	github.com/ninja0404/go-unisat v0.1.1
 	github.com/pelletier/go-toml v1.9.5
 	github.com/prometheus/client_golang v1.18.0
 	github.com/prometheus/common v0.46.0
@@ -65,7 +69,6 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/mostynb/zstdpool-freelist v0.0.0-20201229113212-927304c0c3b1 // indirect
 	github.com/mr-tron/base58 v1.2.0 // indirect
-	github.com/near/borsh-go v0.3.2-0.20220516180422-1ff87d108454 // indirect
 	github.com/pelletier/go-toml/v2 v2.1.0 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/prometheus/client_model v0.5.0 // indirect

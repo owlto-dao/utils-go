@@ -7,8 +7,9 @@ import (
 	"strings"
 
 	_ "github.com/gagliardetto/solana-go"
+	"github.com/ninja0404/go-unisat"
 	"github.com/owlto-dao/utils-go/loader"
-	"github.com/owlto-dao/utils-go/network"
+	"github.com/owlto-dao/utils-go/owlconsts"
 	"github.com/owlto-dao/utils-go/util"
 )
 
@@ -35,28 +36,26 @@ func (w *BitcoinRpc) GetBalance(ctx context.Context, ownerAddr string, tokenAddr
 	tokenAddr = strings.TrimSpace(tokenAddr)
 
 	if util.IsHexStringZero(tokenAddr) {
-		var data map[string]interface{}
-		request := map[string]interface{}{
-			"method": "bb_getaddress",
-			"params": []any{ownerAddr, map[string]interface{}{
-				"page":       1,
-				"size":       1,
-				"fromHeight": 0,
-				"details":    "basic",
-			}},
-		}
-		err := network.Request(w.chainInfo.RpcEndPoint, request, &data)
+		resp, err := unisat.GetAddressBalance(ctx, chainServerMap[w.chainInfo.Name].RpcEndPoint, chainServerMap[w.chainInfo.Name].Bearer, ownerAddr)
 		if err != nil {
-			return big.NewInt(0), err
+			return nil, err
 		}
-
-		if result, ok := data["result"].(map[string]interface{}); ok {
-			if balance, ok := result["balance"].(string); ok {
-				value, ok := big.NewInt(0).SetString(balance, 10)
-				if ok {
-					return value, nil
-				}
-			}
+		if resp.Code != 0 {
+			return nil, fmt.Errorf("unisat GetAddressBalance error: %v", resp.Message)
+		}
+		return resp.Data.Satoshi, nil
+	} else if strings.HasPrefix(tokenAddr, "brc20_") && len(tokenAddr) > 6 {
+		brc20 := tokenAddr[6:]
+		resp, err := unisat.GetAddressBrc20TickInfo(ctx, chainServerMap[w.chainInfo.Name].RpcEndPoint, chainServerMap[w.chainInfo.Name].Bearer, ownerAddr, brc20)
+		if err != nil {
+			return nil, err
+		}
+		if resp.Code != 0 {
+			return nil, fmt.Errorf("unisat GetAddressBrc20TickInfo error: %v", resp.Message)
+		}
+		balance, ok := big.NewInt(0).SetString(resp.Data.OverallBalance, 10)
+		if ok {
+			return balance, nil
 		}
 		return big.NewInt(0), nil
 	} else {
@@ -82,4 +81,24 @@ func (w *BitcoinRpc) Backend() int32 {
 
 func (w *BitcoinRpc) GetLatestBlockNumber(ctx context.Context) (int64, error) {
 	return 0, fmt.Errorf("not impl")
+}
+
+type unisatServer struct {
+	RpcEndPoint string
+	Bearer      string
+}
+
+var chainServerMap = map[string]unisatServer{
+	owlconsts.Bitcoin: {
+		RpcEndPoint: "https://open-api.unisat.io",
+		Bearer:      "4ec6c2086742105639c4716a57b1234144e3bbfd0727ee7692e1cfeaca964105",
+	},
+	owlconsts.FractalBitcoin: {
+		RpcEndPoint: "https://open-api-fractal.unisat.io",
+		Bearer:      "d44b54a14f41891e4b850b9d6aace056911f553a0357299620df4cb6d383af12",
+	},
+	owlconsts.FractalBitcoinTest: {
+		RpcEndPoint: "https://open-api-fractal-testnet.unisat.io",
+		Bearer:      "523c5848192152b2eb1dd20ee08128aa77b9d673812f9fbfb5eb7218518ef195",
+	},
 }
