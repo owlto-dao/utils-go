@@ -20,16 +20,20 @@ type Rpc interface {
 }
 
 func GetRpc(chainInfo *loader.ChainInfo) (Rpc, error) {
-	if chainInfo.Backend == 1 {
+	switch chainInfo.Backend {
+	case loader.EthereumBackend:
 		return NewEvmRpc(chainInfo), nil
-	} else if chainInfo.Backend == 2 {
+	case loader.StarknetBackend:
 		return NewStarknetRpc(chainInfo), nil
-	} else if chainInfo.Backend == 3 {
+	case loader.SolanaBackend:
 		return NewSolanaRpc(chainInfo), nil
-	} else if chainInfo.Backend == 4 {
+	case loader.BitcoinBackend:
 		return NewBitcoinRpc(chainInfo), nil
-	} else if chainInfo.Backend == 5 {
+	case loader.ZksliteBackend:
 		return NewZksliteRpc(chainInfo), nil
+	case loader.TonBackend:
+		return NewTonRpc(chainInfo), nil
+	default:
+		return nil, fmt.Errorf("unsupport backend %v", chainInfo.Backend)
 	}
-	return nil, fmt.Errorf("unsupport backend %v", chainInfo.Backend)
 }
