@@ -2,7 +2,7 @@ package owlconsts
 
 const (
 	ArbitrumNova       = "ArbitrumNovaMainnet"
-	ZksyncMainnet      = "ZksyncMainnet"
+	ZKSyncEra          = "ZksyncMainnet"
 	Linea              = "LineaMainnet"
 	Scroll             = "ScrollMainnet"
 	PolygonzkEVM       = "PolygonZkMainnet"
