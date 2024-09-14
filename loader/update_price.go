@@ -2,7 +2,6 @@ package loader
 
 import (
 	"database/sql"
-	"log"
 	"strings"
 	"sync"
 
@@ -76,5 +75,4 @@ func (mgr *UpdatePriceManager) LoadAllPrice() {
 	mgr.mutex.Lock()
 	mgr.tokens = tokens
 	mgr.mutex.Unlock()
-	log.Println("load all update price: ", counter)
 }

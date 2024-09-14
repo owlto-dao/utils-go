@@ -2,7 +2,6 @@ package loader
 
 import (
 	"database/sql"
-	"log"
 	"math/big"
 	"strings"
 	"sync"
@@ -215,6 +214,4 @@ func (mgr *TokenInfoManager) LoadAllToken() {
 	mgr.chainNameTokenNames = chainNameTokenNames
 	mgr.allTokens = allTokens
 	mgr.mutex.Unlock()
-	log.Println("load all token info: ", counter)
-
 }

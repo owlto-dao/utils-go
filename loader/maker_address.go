@@ -140,8 +140,6 @@ func (mgr *MakerAddressManager) LoadAllMakerAddresses() {
 	}
 	mgr.envGroup = envGroup
 	mgr.backendAddressToGroup = backendAddressToGroup
-
-	log.Infof("load all maker addresses groups: %d", len(groups))
 }
 
 func (mgr *MakerAddressManager) GetMakerAddressesByEnv(env string) []*MakerAddress {

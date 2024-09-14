@@ -2,7 +2,6 @@ package loader
 
 import (
 	"database/sql"
-	"log"
 	"strconv"
 	"strings"
 	"sync"
@@ -214,5 +213,4 @@ func (mgr *LpInfoManager) LoadAllLpInfo() {
 	mgr.lpInfos = lpInfos
 	mgr.allLpInfos = allLpInfos
 	mgr.mutex.Unlock()
-	log.Println("load all lp info: ", counter)
 }

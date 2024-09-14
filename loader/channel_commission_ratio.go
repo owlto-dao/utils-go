@@ -2,7 +2,6 @@ package loader
 
 import (
 	"database/sql"
-	"log"
 	"sort"
 	"sync"
 
@@ -100,6 +99,4 @@ func (mgr *ChannelCommissionRatioManager) LoadAllCommissionRatio() {
 	mgr.channelidToCountToRatio = channelidToCountToRatio
 	mgr.channelidToRatioArr = channelidToRatioArr
 	mgr.mutex.Unlock()
-	log.Println("load all channel commission ratio: ", counter)
-
 }

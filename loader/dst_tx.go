@@ -89,7 +89,6 @@ func (mgr *DstTxManager) Save(tx *DstTx) error {
 		mgr.alerter.AlertText("failed to insert dst transaction", err)
 		return err
 	}
-
 	return nil
 
 }

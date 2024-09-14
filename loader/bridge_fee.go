@@ -2,7 +2,6 @@ package loader
 
 import (
 	"database/sql"
-	"log"
 	"math/big"
 	"strconv"
 	"strings"
@@ -170,8 +169,6 @@ func (mgr *BridgeFeeManager) LoadAllBridgeFee(tokenInfoMgr TokenInfoManager) {
 	mgr.mutex.Lock()
 	mgr.tokenFromToBridgeFees = tokenFromToBridgeFees
 	mgr.mutex.Unlock()
-	log.Println("load all bridge fee: ", counter)
-
 }
 
 func (mgr *BridgeFeeManager) FromUiString(amount *big.Int, bridgeFee int64, decimal int32, keepDecimal int32) *big.Int {

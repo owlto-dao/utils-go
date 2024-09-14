@@ -2,7 +2,6 @@ package loader
 
 import (
 	"database/sql"
-	"log"
 	"strconv"
 	"strings"
 	"sync"
@@ -212,6 +211,4 @@ func (mgr *ChainInfoManager) LoadAllChains() {
 	mgr.netcodeChains = netcodeChains
 	mgr.allChains = allChains
 	mgr.mutex.Unlock()
-	log.Println("load all chain info: ", counter)
-
 }

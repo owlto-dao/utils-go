@@ -2,7 +2,6 @@ package loader
 
 import (
 	"database/sql"
-	"log"
 	"strings"
 	"sync"
 
@@ -92,6 +91,4 @@ func (mgr *PopularListManager) LoadAllPopularList() {
 	mgr.mutex.Lock()
 	mgr.chainToPopularList = chainToPopularList
 	mgr.mutex.Unlock()
-	log.Println("load all popular list: ", counter)
-
 }

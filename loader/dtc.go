@@ -2,7 +2,6 @@ package loader
 
 import (
 	"database/sql"
-	"log"
 	"math/big"
 	"strconv"
 	"strings"
@@ -175,8 +174,6 @@ func (mgr *DtcManager) LoadAllDtc() {
 	mgr.mutex.Lock()
 	mgr.tokenFromToDtcs = tokenFromToDtcs
 	mgr.mutex.Unlock()
-	log.Println("load all dtc: ", counter)
-
 }
 
 func (mgr *DtcManager) GetIncludedDtc(tokenName string, fromChainName string, toChainName string, value float64) (float64, string, bool) {

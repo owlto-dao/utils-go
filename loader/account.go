@@ -2,7 +2,6 @@ package loader
 
 import (
 	"database/sql"
-	"log"
 	"strings"
 	"sync"
 
@@ -129,6 +128,4 @@ func (mgr *AccountManager) LoadAllAccounts() {
 	mgr.addressCidAccounts = addressCidAccounts
 	mgr.cidAddressAccounts = cidAddressAccounts
 	mgr.mutex.Unlock()
-	log.Println("load all account: ", counter)
-
 }

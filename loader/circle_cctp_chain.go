@@ -3,7 +3,6 @@ package loader
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"math/big"
 	"strings"
 	"sync"
@@ -110,6 +109,4 @@ func (mgr *CircleCctpChainManager) LoadAllChains() {
 	mgr.mutex.Lock()
 	mgr.chainIdChains = chainIdChains
 	mgr.mutex.Unlock()
-	log.Println("load all cctp chain: ", counter)
-
 }

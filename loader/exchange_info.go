@@ -2,7 +2,6 @@ package loader
 
 import (
 	"database/sql"
-	"log"
 	"strings"
 	"sync"
 
@@ -100,6 +99,4 @@ func (mgr *ExchangeInfoManager) LoadAllExchanges() {
 	mgr.nameExchanges = nameExchanges
 	mgr.allExchanges = allExchanges
 	mgr.mutex.Unlock()
-	log.Println("load all exchanges : ", counter)
-
 }
