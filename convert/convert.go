@@ -49,6 +49,14 @@ func ConvertStringToPtrTime(value string) *time.Time {
 	return &t
 }
 
+func ConvertStringToTime(value string) time.Time {
+	t, err := time.Parse(time.RFC3339, value)
+	if err != nil {
+		return time.Time{}
+	}
+	return t
+}
+
 func ConvertStringToFloat64(value string) float64 {
 	result, err := strconv.ParseFloat(value, 64)
 	if err != nil {
