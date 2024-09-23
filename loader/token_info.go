@@ -136,6 +136,7 @@ func (mgr *TokenInfoManager) MergeNativeTokens(chainManager ChainInfoManager) {
 		token.TokenAddress = "0x0000000000000000000000000000000000000000"
 		token.TokenName = chainInfo.GasTokenName
 		token.Decimals = chainInfo.GasTokenDecimal
+		token.Icon = chainInfo.GasTokenIcon
 
 		tokenAddrs, ok := mgr.chainNameTokenAddrs[strings.ToLower(token.ChainName)]
 		if !ok {
@@ -160,7 +161,7 @@ func (mgr *TokenInfoManager) MergeNativeTokens(chainManager ChainInfoManager) {
 
 func (mgr *TokenInfoManager) LoadAllToken() {
 	// Query the database to select only id and name fields
-	rows, err := mgr.db.Query("SELECT token_name, chain_name, token_address, decimals FROM t_token_info")
+	rows, err := mgr.db.Query("SELECT token_name, chain_name, token_address, decimals, icon FROM t_token_info")
 
 	if err != nil || rows == nil {
 		mgr.alerter.AlertText("select t_token_info error", err)
@@ -178,12 +179,13 @@ func (mgr *TokenInfoManager) LoadAllToken() {
 	for rows.Next() {
 		var token TokenInfo
 
-		if err := rows.Scan(&token.TokenName, &token.ChainName, &token.TokenAddress, &token.Decimals); err != nil {
+		if err := rows.Scan(&token.TokenName, &token.ChainName, &token.TokenAddress, &token.Decimals, &token.Icon); err != nil {
 			mgr.alerter.AlertText("scan t_token_info row error", err)
 		} else {
 			token.ChainName = strings.TrimSpace(token.ChainName)
 			token.TokenAddress = strings.TrimSpace(token.TokenAddress)
 			token.TokenName = strings.TrimSpace(token.TokenName)
+			token.Icon = strings.TrimSpace(token.Icon)
 
 			tokenAddrs, ok := chainNameTokenAddrs[strings.ToLower(token.ChainName)]
 			if !ok {
