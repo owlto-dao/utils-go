@@ -57,4 +57,5 @@ const (
 	BitcoinTest        = "BitcoinTestnet"
 	FractalBitcoin     = "FractalBitcoinMainnet"
 	FractalBitcoinTest = "FractalBitcoinTestnet"
+	BenFen             = "BenFenMainnet"
 )
