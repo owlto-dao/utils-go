@@ -8,7 +8,6 @@ import (
 
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/ethereum/go-ethereum/ethclient"
-	ethrpc "github.com/ethereum/go-ethereum/rpc"
 	solrpc "github.com/gagliardetto/solana-go/rpc"
 	"github.com/owlto-dao/utils-go/alert"
 )
@@ -183,12 +182,11 @@ func (mgr *ChainInfoManager) LoadAllChains() {
 					continue
 				}
 			} else if chain.Backend == StarknetBackend {
-				erpc, err := ethrpc.Dial(chain.RpcEndPoint)
+				chain.Client, err = rpc.NewProvider(chain.RpcEndPoint)
 				if err != nil {
 					mgr.alerter.AlertText("create starknet client error", err)
 					continue
 				}
-				chain.Client = rpc.NewProvider(erpc)
 			} else if chain.Backend == SolanaBackend {
 				chain.Client = solrpc.New(chain.RpcEndPoint)
 			}
