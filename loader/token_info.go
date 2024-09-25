@@ -122,7 +122,7 @@ func (mgr *TokenInfoManager) GetAllTokens() []*TokenInfo {
 }
 
 func (mgr *TokenInfoManager) MergeNativeTokens(chainManager ChainInfoManager) {
-	allIDs := chainManager.GetChainInfoIds()
+	allIDs := chainManager.GetChainInfoAutoIds()
 
 	mgr.mutex.Lock()
 	defer mgr.mutex.Unlock()
