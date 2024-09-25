@@ -10,6 +10,7 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 	solrpc "github.com/gagliardetto/solana-go/rpc"
 	"github.com/owlto-dao/utils-go/alert"
+	"github.com/owlto-dao/utils-go/convert"
 )
 
 type Backend int32
@@ -85,12 +86,23 @@ func NewChainInfoManager(db *sql.DB, alerter alert.Alerter) *ChainInfoManager {
 	}
 }
 
-func (mgr *ChainInfoManager) GetChainInfoIds() []int64 {
+func (mgr *ChainInfoManager) GetChainInfoAutoIds() []int64 {
 	mgr.mutex.RLock()
 	ids := make([]int64, 0, len(mgr.idChains))
 
 	for id := range mgr.idChains {
 		ids = append(ids, id)
+	}
+	mgr.mutex.RUnlock()
+	return ids
+}
+
+func (mgr *ChainInfoManager) GetChainInfoIDs() []int32 {
+	mgr.mutex.RLock()
+	var ids []int32
+
+	for strID := range mgr.chainIdChains {
+		ids = append(ids, convert.ConvertStringToInt32(strID))
 	}
 	mgr.mutex.RUnlock()
 	return ids

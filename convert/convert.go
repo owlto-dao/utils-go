@@ -9,6 +9,18 @@ import (
 	"time"
 )
 
+func ConvertIntToString(value int) string {
+	return strconv.FormatInt(int64(value), 10)
+}
+
+func ConvertInt32ToString(value int32) string {
+	return strconv.FormatInt(int64(value), 10)
+}
+
+func ConvertInt64ToString(value int64) string {
+	return strconv.FormatInt(value, 10)
+}
+
 func ConvertStringToInt32(value string) int32 {
 	result, err := strconv.ParseInt(value, 10, 64)
 	if err != nil {
