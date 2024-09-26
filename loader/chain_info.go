@@ -102,7 +102,7 @@ func (mgr *ChainInfoManager) GetChainInfoIDs() []int32 {
 	var ids []int32
 
 	for strID := range mgr.chainIdChains {
-		ids = append(ids, convert.ConvertStringToInt32(strID))
+		ids = append(ids, convert.StringToInt[int32](strID))
 	}
 	mgr.mutex.RUnlock()
 	return ids
