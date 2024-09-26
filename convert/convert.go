@@ -2,47 +2,20 @@ package convert
 
 import (
 	"encoding/json"
-	"math"
-	"math/big"
 	"strconv"
-	"strings"
 	"time"
 )
 
-func ConvertIntToString(value int) string {
+func ConvertIntToString[T ~int | ~int8 | ~int16 | ~int32 | ~int64](value T) string {
 	return strconv.FormatInt(int64(value), 10)
 }
 
-func ConvertInt32ToString(value int32) string {
-	return strconv.FormatInt(int64(value), 10)
-}
-
-func ConvertInt64ToString(value int64) string {
-	return strconv.FormatInt(value, 10)
-}
-
-func ConvertStringToInt32(value string) int32 {
+func ConvertStringToInt[T ~int | ~int8 | ~int16 | ~int32 | ~int64](value string) T {
 	result, err := strconv.ParseInt(value, 10, 64)
 	if err != nil {
 		return 0
 	}
-	return int32(result)
-}
-
-func ConvertStringToInt(value string) int {
-	result, err := strconv.ParseInt(value, 10, 64)
-	if err != nil {
-		return 0
-	}
-	return int(result)
-}
-
-func ConvertStringToInt64(value string) int64 {
-	result, err := strconv.ParseInt(value, 10, 64)
-	if err != nil {
-		return 0
-	}
-	return result
+	return T(result)
 }
 
 func ConvertStringToUint64(value string) uint64 {
@@ -75,37 +48,6 @@ func ConvertStringToFloat64(value string) float64 {
 		return 0
 	}
 	return result
-}
-
-func FormatDecimalString(inputStr string, decimalPlaces int) string {
-	if inputStr == "" {
-		return "0." + strings.Repeat("0", decimalPlaces)
-	}
-
-	inputStr = strings.Replace(inputStr, ".", "", 1)
-
-	inputLen := len(inputStr)
-	if inputLen <= decimalPlaces {
-		return strings.TrimRight("0."+strings.Repeat("0", decimalPlaces-inputLen)+inputStr, "0")
-	}
-
-	pointPosition := inputLen - decimalPlaces
-	integerPart := inputStr[:pointPosition]
-	decimalPart := inputStr[pointPosition:]
-
-	decimalPart = strings.TrimRight(decimalPart, "0")
-
-	if decimalPart == "" {
-		return integerPart
-	}
-
-	return integerPart + "." + decimalPart
-}
-
-// ConvertAndScale 通过缩放10的倍数，scale缩放倍数
-func ConvertAndScale(input string, scale int32) string {
-	value, _, _ := new(big.Float).SetPrec(236).Parse(input, 10)
-	return value.Quo(value, big.NewFloat(math.Pow10(int(scale)))).String()
 }
 
 func ConvertToJsonString(obj interface{}) string {
