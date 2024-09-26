@@ -19,10 +19,11 @@ require (
 	github.com/hashicorp/go-metrics v0.5.3
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/near/borsh-go v0.3.2-0.20220516180422-1ff87d108454
+	github.com/ninja0404/go-unisat v0.1.3
 	github.com/pelletier/go-toml v1.9.5
 	github.com/prometheus/client_golang v1.18.0
 	github.com/prometheus/common v0.46.0
-	github.com/shopspring/decimal v1.3.1
+	github.com/shopspring/decimal v1.4.0
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/viper v1.18.2
 	github.com/stretchr/testify v1.9.0
