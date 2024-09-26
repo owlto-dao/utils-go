@@ -30,6 +30,8 @@ func GetRpc(chainInfo *loader.ChainInfo) (Rpc, error) {
 		return NewBitcoinRpc(chainInfo), nil
 	} else if chainInfo.Backend == 5 {
 		return NewZksliteRpc(chainInfo), nil
+	} else if chainInfo.Backend == 8 {
+		return NewBenfenRpc(chainInfo), nil
 	}
 	return nil, fmt.Errorf("unsupport backend %v", chainInfo.Backend)
 }

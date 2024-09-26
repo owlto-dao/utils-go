@@ -7,10 +7,12 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/gagliardetto/solana-go/rpc"
 	"github.com/owlto-dao/utils-go/loader"
+	"github.com/shopspring/decimal"
 )
 
 func TestSol(t *testing.T) {
 	t.Log("test evm...")
+	t.Log(decimal.NewFromFloat(123).Shift(0).String())
 	client, _ := ethclient.Dial("https://bsc-dataseed.bnbchain.org")
 	evmRpc := NewEvmRpc(&loader.ChainInfo{Name: "BnbMainnet", Client: client})
 	t.Log(evmRpc.GetTokenInfo(context.TODO(), "0x1E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82"))
