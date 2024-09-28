@@ -8,7 +8,12 @@ import (
 
 	"github.com/NethermindEth/starknet.go/curve"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/gagliardetto/solana-go"
 )
+
+func IsNativeAddress(address string) bool {
+	return IsHexStringZero(address) || address == solana.PublicKey{}.String()
+}
 
 func GetChecksumAddress(address string) (string, error) {
 	address = strings.TrimSpace(address)
