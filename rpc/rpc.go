@@ -16,7 +16,7 @@ type Rpc interface {
 	GetAllowance(ctx context.Context, ownerAddr string, tokenAddr string, spenderAddr string) (*big.Int, error)
 	GetBalance(ctx context.Context, ownerAddr string, tokenAddr string) (*big.Int, error)
 	GetBalanceAtBlockNumber(ctx context.Context, ownerAddr string, tokenAddr string, blockNumber int64) (*big.Int, error)
-	GetTokenInfo(ctx context.Context, tokenAddr string) (loader.TokenInfo, error)
+	GetTokenInfo(ctx context.Context, tokenAddr string) (*loader.TokenInfo, error)
 }
 
 func GetRpc(chainInfo *loader.ChainInfo) (Rpc, error) {

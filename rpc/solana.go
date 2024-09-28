@@ -86,9 +86,9 @@ func getExtensionData(extensionType uint16, tlvData []byte) []byte {
 	return nil
 }
 
-func (w *SolanaRpc) GetTokenInfo(ctx context.Context, tokenAddr string) (loader.TokenInfo, error) {
+func (w *SolanaRpc) GetTokenInfo(ctx context.Context, tokenAddr string) (*loader.TokenInfo, error) {
 	if util.IsHexStringZero(tokenAddr) || tokenAddr == "11111111111111111111111111111111" {
-		return loader.TokenInfo{
+		return &loader.TokenInfo{
 			TokenName:    "SOL",
 			ChainName:    w.chainInfo.Name,
 			TokenAddress: tokenAddr,
@@ -100,17 +100,17 @@ func (w *SolanaRpc) GetTokenInfo(ctx context.Context, tokenAddr string) (loader.
 	}
 	tokenInfo, ok := w.tokenInfoMgr.GetByChainNameTokenAddr(w.chainInfo.Name, tokenAddr)
 	if ok {
-		return *tokenInfo, nil
+		return tokenInfo, nil
 	}
 
 	mintpk, err := solana.PublicKeyFromBase58(tokenAddr)
 	if err != nil {
-		return loader.TokenInfo{}, err
+		return nil, err
 	}
 
 	metapk, _, err := solana.FindTokenMetadataAddress(mintpk)
 	if err != nil {
-		return loader.TokenInfo{}, err
+		return nil, err
 	}
 
 	symbol := "UNKNOWN"
@@ -123,13 +123,13 @@ func (w *SolanaRpc) GetTokenInfo(ctx context.Context, tokenAddr string) (loader.
 	if err == nil {
 		meta, err := token_metadata.MetadataDeserialize(rsp.GetBinary())
 		if err != nil {
-			return loader.TokenInfo{}, err
+			return nil, err
 		}
 		symbol = meta.Data.Symbol
 		fullName = meta.Data.Name
 		uri = meta.Data.Uri
 	} else if err != rpc.ErrNotFound {
-		return loader.TokenInfo{}, err
+		return nil, err
 	}
 
 	rsp, err = w.GetAccountInfo(
@@ -137,14 +137,14 @@ func (w *SolanaRpc) GetTokenInfo(ctx context.Context, tokenAddr string) (loader.
 		mintpk,
 	)
 	if err != nil {
-		return loader.TokenInfo{}, err
+		return nil, err
 	}
 	var mintAccount token.Mint
 	data := rsp.GetBinary()
 	decoder := bin.NewBorshDecoder(data)
 	err = mintAccount.UnmarshalWithDecoder(decoder)
 	if err != nil {
-		return loader.TokenInfo{}, err
+		return nil, err
 	}
 
 	if len(data) > 166 {
@@ -157,7 +157,7 @@ func (w *SolanaRpc) GetTokenInfo(ctx context.Context, tokenAddr string) (loader.
 		}
 	}
 
-	token := loader.TokenInfo{
+	token := &loader.TokenInfo{
 		TokenName:    symbol,
 		ChainName:    w.chainInfo.Name,
 		TokenAddress: tokenAddr,
@@ -168,7 +168,6 @@ func (w *SolanaRpc) GetTokenInfo(ctx context.Context, tokenAddr string) (loader.
 	}
 	w.tokenInfoMgr.AddTokenInfo(token)
 	return token, nil
-
 }
 
 func (w *SolanaRpc) GetSplAccount(ctx context.Context, ownerAddr string, tokenAddr string) (*token.Account, error) {

@@ -23,8 +23,8 @@ func NewBitcoinRpc(chainInfo *loader.ChainInfo) *BitcoinRpc {
 	}
 }
 
-func (w *BitcoinRpc) GetTokenInfo(ctx context.Context, tokenAddr string) (loader.TokenInfo, error) {
-	return loader.TokenInfo{}, fmt.Errorf("no impl")
+func (w *BitcoinRpc) GetTokenInfo(ctx context.Context, tokenAddr string) (*loader.TokenInfo, error) {
+	return nil, fmt.Errorf("no impl")
 }
 
 func (w *BitcoinRpc) GetBalanceAtBlockNumber(ctx context.Context, ownerAddr string, tokenAddr string, blockNumber int64) (*big.Int, error) {
@@ -35,7 +35,7 @@ func (w *BitcoinRpc) GetBalance(ctx context.Context, ownerAddr string, tokenAddr
 	ownerAddr = strings.TrimSpace(ownerAddr)
 	tokenAddr = strings.TrimSpace(tokenAddr)
 
-	if util.IsHexStringZero(tokenAddr) {
+	if util.IsNativeAddress(tokenAddr) {
 		resp, err := unisat.GetAddressBalance(ctx, chainServerMap[w.chainInfo.Name].RpcEndPoint, chainServerMap[w.chainInfo.Name].Bearer, ownerAddr)
 		if err != nil {
 			return nil, err

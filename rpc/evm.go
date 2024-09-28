@@ -6,6 +6,7 @@ import (
 	"math/big"
 	"strings"
 
+	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -16,7 +17,10 @@ import (
 	"github.com/owlto-dao/utils-go/abi/erc20"
 	"github.com/owlto-dao/utils-go/loader"
 	"github.com/owlto-dao/utils-go/log"
+	"github.com/owlto-dao/utils-go/owlconsts"
+	"github.com/owlto-dao/utils-go/pointer"
 	"github.com/owlto-dao/utils-go/util"
+	"golang.org/x/crypto/sha3"
 )
 
 type EvmRpc struct {
@@ -46,9 +50,9 @@ func (w *EvmRpc) Backend() int32 {
 	return 1
 }
 
-func (w *EvmRpc) GetTokenInfo(ctx context.Context, tokenAddr string) (loader.TokenInfo, error) {
+func (w *EvmRpc) GetTokenInfo(ctx context.Context, tokenAddr string) (*loader.TokenInfo, error) {
 	if util.IsHexStringZero(tokenAddr) {
-		return loader.TokenInfo{
+		return &loader.TokenInfo{
 			TokenName:    w.chainInfo.GasTokenName,
 			ChainName:    w.chainInfo.Name,
 			TokenAddress: tokenAddr,
@@ -60,7 +64,7 @@ func (w *EvmRpc) GetTokenInfo(ctx context.Context, tokenAddr string) (loader.Tok
 	}
 	tokenInfo, ok := w.tokenInfoMgr.GetByChainNameTokenAddr(w.chainInfo.Name, tokenAddr)
 	if ok {
-		return *tokenInfo, nil
+		return tokenInfo, nil
 	}
 
 	var symbolHex hexutil.Bytes
@@ -119,41 +123,41 @@ func (w *EvmRpc) GetTokenInfo(ctx context.Context, tokenAddr string) (loader.Tok
 	})
 
 	if err := w.GetClient().Client().BatchCallContext(ctx, be); err != nil {
-		return loader.TokenInfo{}, err
+		return nil, err
 	}
 	for _, b := range be {
 		if b.Error != nil {
-			return loader.TokenInfo{}, fmt.Errorf("get token error %s %w", b.Method, b.Error)
+			return nil, fmt.Errorf("get token error %s %w", b.Method, b.Error)
 		}
 	}
 
 	symbol, err := hexutil.Decode(symbolHex.String())
 	if err != nil {
-		return loader.TokenInfo{}, err
+		return nil, err
 	}
 
 	name, err := hexutil.Decode(nameHex.String())
 	if err != nil {
-		return loader.TokenInfo{}, err
+		return nil, err
 	}
 
 	decimalsBytes, err := hexutil.Decode(decimalsHex.String())
 	if err != nil {
-		return loader.TokenInfo{}, err
+		return nil, err
 	}
 	decimals := new(big.Int).SetBytes(decimalsBytes)
 
 	totalSupplyBytes, err := hexutil.Decode(totalSupplyHex.String())
 	if err != nil {
-		return loader.TokenInfo{}, err
+		return nil, err
 	}
 	totalSupply := new(big.Int).SetBytes(totalSupplyBytes)
 
 	if decimals.Cmp(common.Big0) <= 0 || len(symbol) == 0 {
-		return loader.TokenInfo{}, fmt.Errorf("not found")
+		return nil, fmt.Errorf("not found")
 	}
 
-	ti := loader.TokenInfo{
+	ti := &loader.TokenInfo{
 		TokenName:    string(symbol),
 		ChainName:    w.chainInfo.Name,
 		TokenAddress: tokenAddr,
@@ -249,4 +253,75 @@ func (w *EvmRpc) GetLatestBlockNumber(ctx context.Context) (int64, error) {
 		return 0, err
 	}
 	return int64(blockNumber), nil
+}
+
+func (w *EvmRpc) EstimateGas(fromAddress string, recipient string, tokenAddress string, value *big.Int) (uint64, error) {
+	var msg ethereum.CallMsg
+	if util.IsNativeAddress(tokenAddress) {
+		switch w.chainInfo.Name {
+		case owlconsts.Scroll, owlconsts.Ethereum, owlconsts.Optimism, owlconsts.Base, owlconsts.Manta, owlconsts.Linea,
+			owlconsts.Bevm, owlconsts.Bevm2, owlconsts.Taiko, owlconsts.AILayer:
+			return 21000, nil
+		}
+		msg = ethereum.CallMsg{
+			From:  common.HexToAddress(fromAddress),
+			To:    pointer.Ptr(common.HexToAddress(recipient)),
+			Value: value,
+		}
+	} else {
+		data := GetERC20TransferData(recipient, value)
+
+		msg = ethereum.CallMsg{
+			From: common.HexToAddress(fromAddress),
+			To:   pointer.Ptr(common.HexToAddress(tokenAddress)),
+			Data: data,
+		}
+	}
+
+	gasLimit, err := w.GetClient().EstimateGas(context.Background(), msg)
+	if err != nil {
+		return 0, err
+	}
+	return gasLimit, nil
+}
+
+func (w *EvmRpc) SuggestGasPrice() (*big.Int, error) {
+	gasPrice, err := w.GetClient().SuggestGasPrice(context.Background())
+	if err != nil {
+		return nil, err
+	}
+	return gasPrice, nil
+}
+
+func (w *EvmRpc) SuggestGasTipCap() (*big.Int, error) {
+	gasTipCap, err := w.GetClient().SuggestGasTipCap(context.Background())
+	if err != nil {
+		return nil, err
+	}
+	return gasTipCap, nil
+}
+
+func (w *EvmRpc) GetBaseFee() (*big.Int, error) {
+	header, err := w.GetClient().HeaderByNumber(context.Background(), nil)
+	if err != nil {
+		return nil, err
+	}
+	return header.BaseFee, nil
+}
+
+func GetERC20TransferData(recipient string, value *big.Int) []byte {
+	transferFnSignature := []byte("transfer(address,uint256)")
+
+	hash := sha3.NewLegacyKeccak256()
+	hash.Write(transferFnSignature)
+
+	methID := hash.Sum(nil)[:4]
+
+	paddedAddress := common.LeftPadBytes(common.HexToAddress(recipient).Bytes(), 32)
+
+	var data []byte
+	data = append(data, methID...)
+	data = append(data, paddedAddress...)
+	data = append(data, common.LeftPadBytes(value.Bytes(), 32)...)
+	return data
 }

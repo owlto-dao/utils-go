@@ -25,8 +25,8 @@ func (w *BenfenRpc) GetBalanceAtBlockNumber(ctx context.Context, ownerAddr strin
 	return w.GetBalance(ctx, ownerAddr, tokenAddr)
 }
 
-func (w *BenfenRpc) GetTokenInfo(ctx context.Context, tokenAddr string) (loader.TokenInfo, error) {
-	return loader.TokenInfo{}, fmt.Errorf("no impl")
+func (w *BenfenRpc) GetTokenInfo(ctx context.Context, tokenAddr string) (*loader.TokenInfo, error) {
+	return nil, fmt.Errorf("no impl")
 }
 
 func (w *BenfenRpc) GetBalance(ctx context.Context, ownerAddr string, tokenAddr string) (*big.Int, error) {

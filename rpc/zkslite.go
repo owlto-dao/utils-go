@@ -29,8 +29,8 @@ func (w *ZksliteRpc) Backend() int32 {
 	return 1
 }
 
-func (w *ZksliteRpc) GetTokenInfo(ctx context.Context, tokenAddr string) (loader.TokenInfo, error) {
-	return loader.TokenInfo{}, fmt.Errorf("no impl")
+func (w *ZksliteRpc) GetTokenInfo(ctx context.Context, tokenAddr string) (*loader.TokenInfo, error) {
+	return nil, fmt.Errorf("no impl")
 }
 
 func (w *ZksliteRpc) GetAllowance(ctx context.Context, ownerAddr string, tokenAddr string, spenderAddr string) (*big.Int, error) {
