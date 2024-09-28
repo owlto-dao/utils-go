@@ -1,0 +1,6 @@
+package owlconsts
+
+const (
+	SolanaZeroAddress = "11111111111111111111111111111111"
+	EvmZeroAddress    = "0x0000000000000000000000000000000000000000"
+)

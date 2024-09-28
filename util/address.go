@@ -8,11 +8,11 @@ import (
 
 	"github.com/NethermindEth/starknet.go/curve"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/gagliardetto/solana-go"
+	"github.com/owlto-dao/utils-go/owlconsts"
 )
 
 func IsNativeAddress(address string) bool {
-	return IsHexStringZero(address) || address == solana.PublicKey{}.String()
+	return IsHexStringZero(address) || address == owlconsts.SolanaZeroAddress
 }
 
 func GetChecksumAddress(address string) (string, error) {
