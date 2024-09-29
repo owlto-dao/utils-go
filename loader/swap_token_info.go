@@ -69,6 +69,7 @@ func (mgr *SwapTokenInfoManager) GetByChainNameTokenAddr(chainName string, token
 	key := chainName + "#" + tokenAddr
 	value, err := mgr.chainNameTokenAddressCache.Get(key)
 	if err != nil {
+		log.Errorf("GetByChainNameTokenAddr chainName %v tokenAddr %v err: %v", chainName, tokenAddr, err)
 		return nil, false
 	}
 	if token, ok := value.(*TokenInfo); ok {
