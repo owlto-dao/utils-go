@@ -29,9 +29,10 @@ func NewSwapTokenInfoManager(db *sql.DB, alerter alert.Alerter) *SwapTokenInfoMa
 			if len(s) != 2 {
 				return nil, fmt.Errorf("invalid key: %s", key)
 			}
-			token, ok := GetByChainNameTokenAddrFromDb(db, s[0], s[1])
-			if !ok {
-				return nil, fmt.Errorf("token not found: %s", key)
+			token, err := GetByChainNameTokenAddrFromDb(db, s[0], s[1])
+			if err != nil {
+				log.Errorf("chain %v addr %v query db error: %v", s[0], s[1], err)
+				return nil, err
 			}
 			return token, nil
 		},
@@ -94,14 +95,14 @@ func (mgr *SwapTokenInfoManager) GetByChainNameTokenName(chainName string, token
 	}
 }
 
-func GetByChainNameTokenAddrFromDb(db *sql.DB, chainName string, tokenAddr string) (*TokenInfo, bool) {
+func GetByChainNameTokenAddrFromDb(db *sql.DB, chainName string, tokenAddr string) (*TokenInfo, error) {
 	var token TokenInfo
 	err := db.QueryRow("SELECT token_name, chain_name, token_address, decimals, icon FROM t_swap_token_info where chain_name = ? and token_address = ?", chainName, tokenAddr).
 		Scan(&token.TokenName, &token.ChainName, &token.TokenAddress, &token.Decimals, &token.Icon)
 	if err != nil {
-		return nil, false
+		return nil, fmt.Errorf("get token info by chainName %v token Addr err: %v", chainName, err)
 	}
-	return &token, true
+	return &token, nil
 }
 
 func GetByChainNameTokenNameFromDb(db *sql.DB, chainName string, tokenName string) (*TokenInfo, bool) {
