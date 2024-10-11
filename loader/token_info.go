@@ -2,6 +2,7 @@ package loader
 
 import (
 	"database/sql"
+	"github.com/owlto-dao/utils-go/owlconsts"
 	"math/big"
 	"strings"
 	"sync"
@@ -133,7 +134,10 @@ func (mgr *TokenInfoManager) MergeNativeTokens(chainManager ChainInfoManager) {
 		}
 		var token TokenInfo
 		token.ChainName = chainInfo.Name
-		token.TokenAddress = "0x0000000000000000000000000000000000000000"
+		token.TokenAddress = owlconsts.EvmZeroAddress
+		if chainInfo.Name == owlconsts.Solana || chainInfo.Name == owlconsts.Eclipse {
+			token.TokenAddress = owlconsts.SolanaZeroAddress
+		}
 		token.TokenName = chainInfo.GasTokenName
 		token.Decimals = chainInfo.GasTokenDecimal
 		token.Icon = chainInfo.GasTokenIcon

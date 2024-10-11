@@ -58,4 +58,5 @@ const (
 	FractalBitcoin     = "FractalBitcoinMainnet"
 	FractalBitcoinTest = "FractalBitcoinTestnet"
 	BenFen             = "BenFenMainnet"
+	Eclipse            = "EclipseMainnet"
 )
