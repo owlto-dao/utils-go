@@ -2,12 +2,12 @@ package loader
 
 import (
 	"database/sql"
-	"github.com/owlto-dao/utils-go/owlconsts"
 	"math/big"
 	"strings"
 	"sync"
 
 	"github.com/owlto-dao/utils-go/alert"
+	"github.com/owlto-dao/utils-go/owlconsts"
 )
 
 type TokenInfo struct {
