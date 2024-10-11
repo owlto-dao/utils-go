@@ -135,7 +135,7 @@ func (mgr *TokenInfoManager) MergeNativeTokens(chainManager ChainInfoManager) {
 		var token TokenInfo
 		token.ChainName = chainInfo.Name
 		token.TokenAddress = owlconsts.EvmZeroAddress
-		if chainInfo.Name == owlconsts.Solana || chainInfo.Name == owlconsts.Eclipse {
+		if chainInfo.Backend == SolanaBackend {
 			token.TokenAddress = owlconsts.SolanaZeroAddress
 		}
 		token.TokenName = chainInfo.GasTokenName
