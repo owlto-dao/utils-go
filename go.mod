@@ -1,6 +1,6 @@
 module github.com/owlto-dao/utils-go
 
-go 1.22.5
+go 1.23.1
 
 require (
 	github.com/NethermindEth/juno v0.3.1
