@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -115,7 +116,7 @@ func (c *Client) doRequest(req *http.Request, response interface{}) error {
 
 	err = json.Unmarshal(body, response)
 	if err != nil {
-		return err
+		return fmt.Errorf("json.Unmarshal err: %w, body: %v", err, string(body))
 	}
 	return nil
 }
