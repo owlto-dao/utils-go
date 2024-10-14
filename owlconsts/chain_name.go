@@ -59,4 +59,7 @@ const (
 	FractalBitcoinTest = "FractalBitcoinTestnet"
 	BenFen             = "BenFenMainnet"
 	Eclipse            = "EclipseMainnet"
+	Zircuit            = "ZircuitMainnet"
+	Unichain           = "UnichainMainnet"
+	UnichainSepolia    = "UnichainSepolia"
 )
