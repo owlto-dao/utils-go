@@ -20,7 +20,7 @@ type TokenInfo struct {
 	Icon         string
 	Url          string
 
-	IsVerified bool
+	IsVerified bool // swap token only
 }
 
 type TokenInfoManager struct {
