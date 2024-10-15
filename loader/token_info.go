@@ -19,6 +19,8 @@ type TokenInfo struct {
 	TotalSupply  *big.Int
 	Icon         string
 	Url          string
+
+	IsVerified bool // swap token only
 }
 
 type TokenInfoManager struct {
