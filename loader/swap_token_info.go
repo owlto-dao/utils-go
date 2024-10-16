@@ -64,8 +64,8 @@ func (mgr *SwapTokenInfoManager) GetByChainNameTokenAddr(chainName string, token
 
 func GetByChainNameTokenAddrFromDb(db *sql.DB, chainName string, tokenAddr string) (*TokenInfo, error) {
 	var token TokenInfo
-	err := db.QueryRow("SELECT token_name, chain_name, token_address, decimals, icon, is_verified FROM t_swap_token_info where chain_name = ? and token_address = ?", chainName, tokenAddr).
-		Scan(&token.TokenName, &token.ChainName, &token.TokenAddress, &token.Decimals, &token.Icon, &token.IsVerified)
+	err := db.QueryRow("SELECT token_name, chain_name, token_address, decimals, icon FROM t_swap_token_info where chain_name = ? and token_address = ?", chainName, tokenAddr).
+		Scan(&token.TokenName, &token.ChainName, &token.TokenAddress, &token.Decimals, &token.Icon)
 	if err != nil {
 		return nil, fmt.Errorf("get token info by chainName %v token Addr err: %v", chainName, err)
 	}
