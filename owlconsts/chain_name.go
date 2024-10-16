@@ -62,4 +62,5 @@ const (
 	Zircuit            = "ZircuitMainnet"
 	Unichain           = "UnichainMainnet"
 	UnichainSepolia    = "UnichainSepolia"
+	Kaia               = "KaiaMainnet"
 )
