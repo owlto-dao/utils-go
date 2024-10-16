@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/block-vision/sui-go-sdk/sui"
 	"github.com/ethereum/go-ethereum/ethclient"
 	solrpc "github.com/gagliardetto/solana-go/rpc"
 	"github.com/owlto-dao/utils-go/alert"
@@ -202,6 +203,8 @@ func (mgr *ChainInfoManager) LoadAllChains() {
 				}
 			} else if chain.Backend == SolanaBackend {
 				chain.Client = solrpc.New(chain.RpcEndPoint)
+			} else if chain.Backend == SuiBackend {
+				chain.Client = sui.NewSuiClient(chain.RpcEndPoint)
 			}
 
 			idChains[chain.Id] = &chain

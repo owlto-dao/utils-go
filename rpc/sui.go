@@ -21,7 +21,7 @@ type SuiRpc struct {
 
 func NewSuiRpc(chainInfo *loader.ChainInfo) *SuiRpc {
 	return &SuiRpc{
-		client:       sui.NewSuiClient(chainInfo.RpcEndPoint),
+		client:       chainInfo.Client.(sui.ISuiAPI),
 		chainInfo:    chainInfo,
 		tokenInfoMgr: loader.NewTokenInfoManager(nil, nil),
 	}
