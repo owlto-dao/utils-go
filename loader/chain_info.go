@@ -24,6 +24,7 @@ const (
 	TonBackend
 	CosmosBackend
 	NetworkTypeBfc
+	SuiBackend
 )
 
 type ChainInfo struct {
