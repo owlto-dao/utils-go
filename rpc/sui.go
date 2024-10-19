@@ -76,7 +76,9 @@ func (w *SuiRpc) GetTokenInfo(ctx context.Context, tokenAddr string) (*loader.To
 func (w *SuiRpc) GetBalance(ctx context.Context, ownerAddr string, tokenAddr string) (*big.Int, error) {
 	ownerAddr = strings.TrimSpace(ownerAddr)
 	tokenAddr = strings.TrimSpace(tokenAddr)
-
+	if util.IsHexStringZero(tokenAddr) {
+		tokenAddr = "0x2::sui::SUI"
+	}
 	rsp, err := w.client.SuiXGetBalance(ctx, models.SuiXGetBalanceRequest{
 		Owner:    ownerAddr,
 		CoinType: tokenAddr,
