@@ -81,24 +81,23 @@ func (w *StarknetRpc) IsTxSuccess(ctx context.Context, hash string) (bool, int64
 	if err != nil {
 		return false, 0, err
 	}
-	status, err := w.GetClient().GetTransactionStatus(ctx, new(felt.Felt).SetBytes(bhash))
+	receipt, err := w.GetClient().TransactionReceipt(ctx, new(felt.Felt).SetBytes(bhash))
 	if err != nil {
 		return false, 0, err
 	}
-	if status == nil {
+	if receipt == nil {
 		return false, 0, fmt.Errorf("get status failed")
 	}
 
-	switch status.FinalityStatus {
-	case rpc.TxnStatus_Rejected:
-		return false, 0, nil
-	case rpc.TxnStatus_Received:
-		// ignore this status, wait for L2 confirmation
-		return false, 0, fmt.Errorf("not complete: %v", status.FinalityStatus)
-	case rpc.TxnStatus_Accepted_On_L2, rpc.TxnStatus_Accepted_On_L1:
-		return true, 0, nil //status.ExecutionStatus == rpc.TxnExecutionStatusSUCCEEDED, nil
+	switch receipt.FinalityStatus {
+	case rpc.TxnFinalityStatusAcceptedOnL2, rpc.TxnFinalityStatusAcceptedOnL1:
+		if receipt.ExecutionStatus == rpc.TxnExecutionStatusSUCCEEDED {
+			return true, int64(receipt.BlockNumber), nil
+		} else {
+			return false, int64(receipt.BlockNumber), nil
+		}
 	default:
-		return false, 0, fmt.Errorf("unknown tx status: %v", status.FinalityStatus)
+		return false, 0, fmt.Errorf("unknown tx status: %v", receipt.FinalityStatus)
 	}
 }
 
