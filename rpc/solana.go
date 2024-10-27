@@ -188,22 +188,35 @@ func (w *SolanaRpc) GetSplAccount(ctx context.Context, ownerAddr string, tokenAd
 		return nil, err
 	}
 
-	rsp, err := w.GetAccountInfo(
+	ownerAta2022, err := sol.Get2022AtaFromPk(ownerpk, mintpk)
+	if err != nil {
+		return nil, err
+	}
+
+	rsp, err := w.GetClient().GetMultipleAccounts(
 		ctx,
 		ownerAta,
+		ownerAta2022,
 	)
 	if err != nil {
 		return nil, err
 	}
 
 	var tokenAccount token.Account
-	decoder := bin.NewBorshDecoder(rsp.GetBinary())
-	err = tokenAccount.UnmarshalWithDecoder(decoder)
-	if err != nil {
-		return nil, err
-	} else {
-		return &tokenAccount, nil
+	for _, acc := range rsp.Value {
+		var r rpc.GetAccountInfoResult = rpc.GetAccountInfoResult{
+			RPCContext: rsp.RPCContext,
+			Value:      acc,
+		}
+		decoder := bin.NewBorshDecoder(r.GetBinary())
+		err = tokenAccount.UnmarshalWithDecoder(decoder)
+		if err != nil {
+			continue
+		} else {
+			return &tokenAccount, nil
+		}
 	}
+	return nil, fmt.Errorf("no all token account")
 }
 
 func (w *SolanaRpc) GetBalanceAtBlockNumber(ctx context.Context, ownerAddr string, tokenAddr string, blockNumber int64) (*big.Int, error) {

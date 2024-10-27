@@ -92,6 +92,23 @@ func GetAtaFromPk(pk solana.PublicKey, mintpk solana.PublicKey) (solana.PublicKe
 
 }
 
+func Get2022AtaFromPk(pk solana.PublicKey, mintpk solana.PublicKey) (solana.PublicKey, error) {
+	token2022 := solana.MustPublicKeyFromBase58("TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb")
+	ata, _, err := solana.FindProgramAddress([][]byte{
+		pk[:],
+		token2022[:],
+		mintpk[:],
+	},
+		solana.SPLAssociatedTokenAccountProgramID,
+	)
+	if err != nil {
+		return solana.PublicKey{}, err
+	}
+
+	return ata, nil
+
+}
+
 func TransferBody(senderAddr string, receiverAddr string, amount *big.Int) ([]byte, error) {
 	senderAddr = strings.TrimSpace(senderAddr)
 	receiverAddr = strings.TrimSpace(receiverAddr)
