@@ -64,4 +64,5 @@ const (
 	UnichainSepolia    = "UnichainSepolia"
 	Kaia               = "KaiaMainnet"
 	WorldChain         = "WorldChainMainnet"
+	Fuel               = "FuelMainnet"
 )

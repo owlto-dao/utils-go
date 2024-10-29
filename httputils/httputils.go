@@ -49,20 +49,19 @@ func (c *Client) DoPost(ctx context.Context, urlStr string, data interface{}, he
 
 	// 根据 data 的类型推断内容类型并进行相应处理
 	switch v := data.(type) {
-	case map[string]interface{}: // 如果是 JSON 数据
-		body, err = json.Marshal(v)
-		if err != nil {
-			return err
-		}
-		contentType = "application/json"
-	case url.Values: // 如果是表单数据
-		body = []byte(v.Encode())
-		contentType = "application/x-www-form-urlencoded"
 	case string: // 如果是纯文本数据
 		body = []byte(v)
 		contentType = "text/plain"
+	case url.Values: // 如果是表单数据
+		body = []byte(v.Encode())
+		contentType = "application/x-www-form-urlencoded"
 	default:
-		return errors.New("不支持的数据类型")
+		// 尝试将数据序列化为 JSON
+		body, err = json.Marshal(data)
+		if err != nil {
+			return fmt.Errorf("无法将数据序列化为 JSON：%v", err)
+		}
+		contentType = "application/json"
 	}
 
 	// 创建 HTTP 请求
