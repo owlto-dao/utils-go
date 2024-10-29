@@ -193,10 +193,13 @@ func (w *SolanaRpc) GetSplAccount(ctx context.Context, ownerAddr string, tokenAd
 		return nil, err
 	}
 
-	rsp, err := w.GetClient().GetMultipleAccounts(
+	rsp, err := w.GetClient().GetMultipleAccountsWithOpts(
 		ctx,
-		ownerAta,
-		ownerAta2022,
+		[]solana.PublicKey{ownerAta, ownerAta2022},
+		&rpc.GetMultipleAccountsOpts{
+			Commitment: rpc.CommitmentConfirmed,
+			DataSlice:  nil,
+		},
 	)
 	if err != nil {
 		return nil, err
@@ -266,7 +269,11 @@ func (w *SolanaRpc) IsTxSuccess(ctx context.Context, hash string) (bool, int64, 
 		return false, 0, err
 	}
 
-	receipt, err := w.GetClient().GetTransaction(ctx, sig, nil)
+	var maxVersion uint64 = 0
+	receipt, err := w.GetClient().GetTransaction(ctx, sig, &rpc.GetTransactionOpts{
+		Commitment:                     rpc.CommitmentConfirmed,
+		MaxSupportedTransactionVersion: &maxVersion,
+	})
 	if err != nil {
 		return false, 0, err
 	}
@@ -287,7 +294,7 @@ func (w *SolanaRpc) Backend() int32 {
 func (w *SolanaRpc) GetLatestBlockNumber(ctx context.Context) (int64, error) {
 	blockNumber, err := w.GetClient().GetSlot(
 		context.TODO(),
-		rpc.CommitmentFinalized,
+		rpc.CommitmentConfirmed,
 	)
 
 	if err != nil {
