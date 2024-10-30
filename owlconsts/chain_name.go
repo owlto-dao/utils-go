@@ -65,4 +65,5 @@ const (
 	Kaia               = "KaiaMainnet"
 	WorldChain         = "WorldChainMainnet"
 	Fuel               = "FuelMainnet"
+	SoneiumMinatoTest  = "SoneiumMinatoTestnet"
 )
