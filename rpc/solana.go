@@ -219,7 +219,7 @@ func (w *SolanaRpc) GetSplAccount(ctx context.Context, ownerAddr string, tokenAd
 			return &tokenAccount, nil
 		}
 	}
-	return nil, fmt.Errorf("no all token account")
+	return nil, rpc.ErrNotFound
 }
 
 func (w *SolanaRpc) GetBalanceAtBlockNumber(ctx context.Context, ownerAddr string, tokenAddr string, blockNumber int64) (*big.Int, error) {
