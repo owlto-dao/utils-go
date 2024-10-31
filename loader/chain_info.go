@@ -26,6 +26,7 @@ const (
 	CosmosBackend
 	NetworkTypeBfc
 	SuiBackend
+	FuelBackend
 )
 
 type ChainInfo struct {
