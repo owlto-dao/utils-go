@@ -65,6 +65,14 @@ func (ci *ChainInfo) GetInt64ChainId() int64 {
 	return chainid
 }
 
+func (ci *ChainInfo) IsEvmChain() bool {
+	return ci.Backend == EthereumBackend
+}
+
+func (ci *ChainInfo) IsSvmChain() bool {
+	return ci.Backend == SolanaBackend
+}
+
 type ChainInfoManager struct {
 	idChains      map[int64]*ChainInfo
 	chainIdChains map[string]*ChainInfo
