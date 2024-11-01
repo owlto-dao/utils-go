@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/big"
 
+	"github.com/owlto-dao/utils-go/apollosdk"
 	"github.com/owlto-dao/utils-go/loader"
 )
 
@@ -19,7 +20,7 @@ type Rpc interface {
 	GetTokenInfo(ctx context.Context, tokenAddr string) (*loader.TokenInfo, error)
 }
 
-func GetRpc(chainInfo *loader.ChainInfo) (Rpc, error) {
+func GetRpc(chainInfo *loader.ChainInfo, apolloSDK *apollosdk.ApolloSDK) (Rpc, error) {
 	if chainInfo.Backend == 1 {
 		return NewEvmRpc(chainInfo), nil
 	} else if chainInfo.Backend == 2 {
@@ -27,7 +28,7 @@ func GetRpc(chainInfo *loader.ChainInfo) (Rpc, error) {
 	} else if chainInfo.Backend == 3 {
 		return NewSolanaRpc(chainInfo), nil
 	} else if chainInfo.Backend == 4 {
-		return NewBitcoinRpc(chainInfo), nil
+		return NewBitcoinRpc(chainInfo, apolloSDK), nil
 	} else if chainInfo.Backend == 5 {
 		return NewZksliteRpc(chainInfo), nil
 	} else if chainInfo.Backend == 8 {

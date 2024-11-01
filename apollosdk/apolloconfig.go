@@ -1,6 +1,7 @@
 package apollosdk
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -55,4 +56,30 @@ func (sdk *ApolloSDK) GetString(namespace, key string) (string, error) {
 		return "", fmt.Errorf("namespace %s not found", namespace)
 	}
 	return config.GetValue(key), nil
+}
+
+func GetConfig[T any](apolloSDK *ApolloSDK, namespace, key string, parseFunc ...func(string) (T, error)) (T, error) {
+	var zero T
+
+	value, err := apolloSDK.GetString(namespace, key)
+	if err != nil {
+		return zero, err
+	}
+
+	if len(parseFunc) > 0 && parseFunc[0] != nil {
+		return parseFunc[0](value)
+	}
+
+	var result T
+	if err = json.Unmarshal([]byte(value), &result); err == nil {
+		return result, nil
+	}
+
+	var str string
+	if _, ok := any(result).(string); ok {
+		str = value
+		return any(str).(T), nil
+	}
+
+	return zero, fmt.Errorf("unable to parse config, value: %v", value)
 }

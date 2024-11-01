@@ -2,24 +2,46 @@ package rpc
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"math/big"
 	"strings"
 
 	_ "github.com/gagliardetto/solana-go"
 	"github.com/ninja0404/go-unisat"
+	"github.com/owlto-dao/utils-go/apollosdk"
 	"github.com/owlto-dao/utils-go/loader"
-	"github.com/owlto-dao/utils-go/owlconsts"
 	"github.com/owlto-dao/utils-go/util"
 )
 
 type BitcoinRpc struct {
 	chainInfo *loader.ChainInfo
+	apolloSDK *apollosdk.ApolloSDK
 }
 
-func NewBitcoinRpc(chainInfo *loader.ChainInfo) *BitcoinRpc {
+type UnisatAPIConfig map[string]*chainServerBearer
+
+type chainServerBearer struct {
+	Server        string
+	MemPoolServer string
+	Bearer        string
+	Timeout       int64 // second
+	QueryInterval int64 // second
+}
+
+func ParseUnisatAPIConfig(value string) (UnisatAPIConfig, error) {
+	var u UnisatAPIConfig
+	err := json.Unmarshal([]byte(value), &u)
+	if err != nil {
+		return nil, err
+	}
+	return u, nil
+}
+
+func NewBitcoinRpc(chainInfo *loader.ChainInfo, apolloSDK *apollosdk.ApolloSDK) *BitcoinRpc {
 	return &BitcoinRpc{
 		chainInfo: chainInfo,
+		apolloSDK: apolloSDK,
 	}
 }
 
@@ -35,8 +57,12 @@ func (w *BitcoinRpc) GetBalance(ctx context.Context, ownerAddr string, tokenAddr
 	ownerAddr = strings.TrimSpace(ownerAddr)
 	tokenAddr = strings.TrimSpace(tokenAddr)
 
-	if util.IsNativeAddress(tokenAddr) {
-		resp, err := unisat.GetAddressBalance(ctx, chainServerMap[w.chainInfo.Name].RpcEndPoint, chainServerMap[w.chainInfo.Name].Bearer, ownerAddr)
+	unisatAPIConfig, err := apollosdk.GetConfig(w.apolloSDK, "base_config", "unisat_api_config", ParseUnisatAPIConfig)
+	if err != nil {
+		return nil, err
+	}
+	if util.IsHexStringZero(tokenAddr) {
+		resp, err := unisat.GetAddressBalance(ctx, unisatAPIConfig[w.chainInfo.Name].Server, unisatAPIConfig[w.chainInfo.Name].Bearer, ownerAddr)
 		if err != nil {
 			return nil, err
 		}
@@ -46,7 +72,7 @@ func (w *BitcoinRpc) GetBalance(ctx context.Context, ownerAddr string, tokenAddr
 		return resp.Data.Satoshi, nil
 	} else if strings.HasPrefix(tokenAddr, "brc20_") && len(tokenAddr) > 6 {
 		brc20 := tokenAddr[6:]
-		resp, err := unisat.GetAddressBrc20TickInfo(ctx, chainServerMap[w.chainInfo.Name].RpcEndPoint, chainServerMap[w.chainInfo.Name].Bearer, ownerAddr, brc20)
+		resp, err := unisat.GetAddressBrc20TickInfo(ctx, unisatAPIConfig[w.chainInfo.Name].Server, unisatAPIConfig[w.chainInfo.Name].Bearer, ownerAddr, brc20)
 		if err != nil {
 			return nil, err
 		}
@@ -83,22 +109,22 @@ func (w *BitcoinRpc) GetLatestBlockNumber(ctx context.Context) (int64, error) {
 	return 0, fmt.Errorf("not impl")
 }
 
-type unisatServer struct {
-	RpcEndPoint string
-	Bearer      string
-}
-
-var chainServerMap = map[string]unisatServer{
-	owlconsts.Bitcoin: {
-		RpcEndPoint: "https://open-api.unisat.io",
-		Bearer:      "4ec6c2086742105639c4716a57b1234144e3bbfd0727ee7692e1cfeaca964105",
-	},
-	owlconsts.FractalBitcoin: {
-		RpcEndPoint: "https://open-api-fractal.unisat.io",
-		Bearer:      "d44b54a14f41891e4b850b9d6aace056911f553a0357299620df4cb6d383af12",
-	},
-	owlconsts.FractalBitcoinTest: {
-		RpcEndPoint: "https://open-api-fractal-testnet.unisat.io",
-		Bearer:      "523c5848192152b2eb1dd20ee08128aa77b9d673812f9fbfb5eb7218518ef195",
-	},
-}
+//type unisatServer struct {
+//	RpcEndPoint string
+//	Bearer      string
+//}
+//
+//var chainServerMap = map[string]unisatServer{
+//	owlconsts.Bitcoin: {
+//		RpcEndPoint: "https://open-api.unisat.io",
+//		Bearer:      "4ec6c2086742105639c4716a57b1234144e3bbfd0727ee7692e1cfeaca964105",
+//	},
+//	owlconsts.FractalBitcoin: {
+//		RpcEndPoint: "https://open-api-fractal.unisat.io",
+//		Bearer:      "d44b54a14f41891e4b850b9d6aace056911f553a0357299620df4cb6d383af12",
+//	},
+//	owlconsts.FractalBitcoinTest: {
+//		RpcEndPoint: "https://open-api-fractal-testnet.unisat.io",
+//		Bearer:      "523c5848192152b2eb1dd20ee08128aa77b9d673812f9fbfb5eb7218518ef195",
+//	},
+//}
