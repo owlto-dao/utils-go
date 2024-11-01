@@ -12,6 +12,7 @@ import (
 	solrpc "github.com/gagliardetto/solana-go/rpc"
 	"github.com/owlto-dao/utils-go/alert"
 	"github.com/owlto-dao/utils-go/convert"
+	"github.com/sentioxyz/fuel-go"
 )
 
 type Backend int32
@@ -206,6 +207,8 @@ func (mgr *ChainInfoManager) LoadAllChains() {
 				chain.Client = solrpc.New(chain.RpcEndPoint)
 			} else if chain.Backend == SuiBackend {
 				chain.Client = sui.NewSuiClient(chain.RpcEndPoint)
+			} else if chain.Backend == FuelBackend {
+				chain.Client = fuel.NewClient(chain.RpcEndPoint)
 			}
 
 			idChains[chain.Id] = &chain
