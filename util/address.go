@@ -1,9 +1,11 @@
 package util
 
 import (
+	"crypto/sha256"
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/NethermindEth/starknet.go/curve"
@@ -30,6 +32,58 @@ func GetChecksumAddress(address string) (string, error) {
 	} else {
 		return "", fmt.Errorf("unsupport address len: %s", address)
 	}
+}
+
+func GetFuelChecksumAddress(address string) (string, error) {
+	// 检查地址是否符合 B256 格式
+	if !isB256(address) {
+		return "", fmt.Errorf("invalid B256 address format")
+	}
+
+	address = strings.TrimSpace(address)
+	if len(address) == 0 {
+		return "", fmt.Errorf("empty address")
+	}
+	if len(address) == 66 {
+		return GetChecksumAddress64(address)
+	} else {
+		return "", fmt.Errorf("unsupport address len: %s", address)
+	}
+}
+
+func isB256(address string) bool {
+	matched, _ := regexp.MatchString(`^(0x)[0-9a-fA-F]{64}$`, address)
+	return len(address) == 66 && matched
+}
+
+func toFuelChecksumAddress(address string) string {
+	// 转换地址为小写，并去掉前缀 "0x"
+	addressHex := strings.ToLower(strings.TrimPrefix(address, "0x"))
+
+	// 计算地址的 SHA-256 哈希
+	hasher := sha256.New()
+	hasher.Write([]byte(addressHex))
+	checksum := hasher.Sum(nil)
+
+	// 根据哈希值设置字符的大小写
+	ret := "0x"
+	for i := 0; i < 32; i++ {
+		ha := addressHex[i*2]
+		hb := addressHex[i*2+1]
+		// 根据哈希的高 4 位和低 4 位设置字符大小写
+		if checksum[i]&0xf0 >= 0x80 {
+			ret += strings.ToUpper(string(ha))
+		} else {
+			ret += string(ha)
+		}
+		if checksum[i]&0x0f >= 0x08 {
+			ret += strings.ToUpper(string(hb))
+		} else {
+			ret += string(hb)
+		}
+	}
+
+	return ret
 }
 
 func GetChecksumAddress40(address string) (string, error) {
