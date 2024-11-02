@@ -13,13 +13,14 @@ import (
 )
 
 type FuelRpc struct {
-	tokenInfoMgr *loader.TokenInfoManager
-	chainInfo    *loader.ChainInfo
+	chainInfo     *loader.ChainInfo
+	graphqlClient *graphql.Client
 }
 
 func NewFuelRpc(chainInfo *loader.ChainInfo) *FuelRpc {
 	return &FuelRpc{
-		chainInfo: chainInfo,
+		chainInfo:     chainInfo,
+		graphqlClient: graphql.NewClient(chainInfo.RpcEndPoint),
 	}
 }
 
@@ -98,8 +99,7 @@ func (f *FuelRpc) GetBalance(ctx context.Context, ownerAddr string, tokenAddr st
 		} `json:"balance"`
 	}
 
-	client := graphql.NewClient(f.chainInfo.RpcEndPoint)
-	if err := client.Run(ctx, req, &respData); err != nil {
+	if err := f.graphqlClient.Run(ctx, req, &respData); err != nil {
 		return nil, fmt.Errorf("get balance err: %v", err)
 	}
 
