@@ -12,6 +12,7 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/owlto-dao/utils-go/loader"
 	"github.com/owlto-dao/utils-go/log"
+	"github.com/owlto-dao/utils-go/util"
 )
 
 type StarknetRpc struct {
@@ -30,6 +31,15 @@ func (w *StarknetRpc) GetClient() *rpc.Provider {
 
 func (w *StarknetRpc) Client() interface{} {
 	return w.chainInfo.Client
+}
+
+func (w *StarknetRpc) IsAddressValid(addr string) bool {
+	return strings.HasPrefix(addr, "0x") && len(addr) == 66 && util.IsHex(addr[2:])
+}
+
+func (w *StarknetRpc) GetChecksumAddress(addr string) string {
+	caddr, _ := util.GetChecksumAddress64(addr)
+	return caddr
 }
 
 func (w *StarknetRpc) GetTokenInfo(ctx context.Context, tokenAddr string) (*loader.TokenInfo, error) {

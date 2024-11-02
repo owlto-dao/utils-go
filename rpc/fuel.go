@@ -4,10 +4,12 @@ import (
 	"context"
 	"fmt"
 	"math/big"
+	"strings"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/machinebox/graphql"
 	"github.com/owlto-dao/utils-go/loader"
+	"github.com/owlto-dao/utils-go/util"
 	"github.com/sentioxyz/fuel-go"
 	"github.com/sentioxyz/fuel-go/types"
 )
@@ -34,6 +36,15 @@ func (f *FuelRpc) Client() interface{} {
 
 func (f *FuelRpc) Backend() int32 {
 	return int32(loader.FuelBackend)
+}
+
+func (w *FuelRpc) IsAddressValid(addr string) bool {
+	return strings.HasPrefix(addr, "0x") && len(addr) == 66 && util.IsHex(addr[2:])
+}
+
+func (w *FuelRpc) GetChecksumAddress(addr string) string {
+	caddr, _ := util.GetChecksumAddress64(addr)
+	return caddr
 }
 
 func (f *FuelRpc) GetLatestBlockNumber(ctx context.Context) (int64, error) {
