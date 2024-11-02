@@ -44,6 +44,10 @@ func (w *SolanaRpc) IsAddressValid(addr string) bool {
 	return err == nil
 }
 
+func (w *SolanaRpc) GetChecksumAddress(addr string) string {
+	return addr
+}
+
 func (w *SolanaRpc) GetClient() *rpc.Client {
 	return w.chainInfo.Client.(*rpc.Client)
 }

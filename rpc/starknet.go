@@ -37,6 +37,11 @@ func (w *StarknetRpc) IsAddressValid(addr string) bool {
 	return strings.HasPrefix(addr, "0x") && len(addr) == 66 && util.IsHex(addr[2:])
 }
 
+func (w *StarknetRpc) GetChecksumAddress(addr string) string {
+	caddr, _ := util.GetChecksumAddress64(addr)
+	return caddr
+}
+
 func (w *StarknetRpc) GetTokenInfo(ctx context.Context, tokenAddr string) (*loader.TokenInfo, error) {
 	return nil, fmt.Errorf("no impl")
 }

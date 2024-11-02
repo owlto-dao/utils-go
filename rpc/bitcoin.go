@@ -51,6 +51,10 @@ func (w *BitcoinRpc) IsAddressValid(addr string) bool {
 	return err == nil
 }
 
+func (w *BitcoinRpc) GetChecksumAddress(addr string) string {
+	return addr
+}
+
 func (w *BitcoinRpc) GetTokenInfo(ctx context.Context, tokenAddr string) (*loader.TokenInfo, error) {
 	return nil, fmt.Errorf("no impl")
 }

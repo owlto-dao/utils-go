@@ -19,6 +19,7 @@ type Rpc interface {
 	GetBalanceAtBlockNumber(ctx context.Context, ownerAddr string, tokenAddr string, blockNumber int64) (*big.Int, error)
 	GetTokenInfo(ctx context.Context, tokenAddr string) (*loader.TokenInfo, error)
 	IsAddressValid(addr string) bool
+	GetChecksumAddress(addr string) string
 }
 
 func GetRpc(chainInfo *loader.ChainInfo, apolloSDK *apollosdk.ApolloSDK) (Rpc, error) {

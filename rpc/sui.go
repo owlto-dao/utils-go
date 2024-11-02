@@ -31,6 +31,10 @@ func (w *SuiRpc) IsAddressValid(addr string) bool {
 	return strings.HasPrefix(addr, "0x") && len(addr) == 66 && util.IsHex(addr[2:])
 }
 
+func (w *SuiRpc) GetChecksumAddress(addr string) string {
+	return addr
+}
+
 func (w *SuiRpc) GetBalanceAtBlockNumber(ctx context.Context, ownerAddr string, tokenAddr string, blockNumber int64) (*big.Int, error) {
 	return w.GetBalance(ctx, ownerAddr, tokenAddr)
 }

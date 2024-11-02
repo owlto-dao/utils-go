@@ -41,6 +41,11 @@ func (w *FuelRpc) IsAddressValid(addr string) bool {
 	return strings.HasPrefix(addr, "0x") && len(addr) == 66 && util.IsHex(addr[2:])
 }
 
+func (w *FuelRpc) GetChecksumAddress(addr string) string {
+	caddr, _ := util.GetChecksumAddress64(addr)
+	return caddr
+}
+
 func (f *FuelRpc) GetLatestBlockNumber(ctx context.Context) (int64, error) {
 	blockNumber, err := f.GetClient().GetLatestBlockHeight(ctx)
 	if err != nil {

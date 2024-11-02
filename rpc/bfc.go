@@ -26,6 +26,10 @@ func (w *BenfenRpc) IsAddressValid(addr string) bool {
 	return strings.HasPrefix(addr, "BFC") && len(addr) == 71 && util.IsHex(addr[3:])
 }
 
+func (w *BenfenRpc) GetChecksumAddress(addr string) string {
+	return addr
+}
+
 func (w *BenfenRpc) GetBalanceAtBlockNumber(ctx context.Context, ownerAddr string, tokenAddr string, blockNumber int64) (*big.Int, error) {
 	return w.GetBalance(ctx, ownerAddr, tokenAddr)
 }
