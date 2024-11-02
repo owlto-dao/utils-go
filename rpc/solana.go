@@ -39,6 +39,11 @@ func NewSolanaRpc(chainInfo *loader.ChainInfo) *SolanaRpc {
 	}
 }
 
+func (w *SolanaRpc) IsAddressValid(addr string) bool {
+	_, err := solana.PublicKeyFromBase58(addr)
+	return err == nil
+}
+
 func (w *SolanaRpc) GetClient() *rpc.Client {
 	return w.chainInfo.Client.(*rpc.Client)
 }

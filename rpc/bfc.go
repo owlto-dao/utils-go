@@ -9,6 +9,7 @@ import (
 	_ "github.com/gagliardetto/solana-go"
 	"github.com/owlto-dao/utils-go/loader"
 	"github.com/owlto-dao/utils-go/network"
+	"github.com/owlto-dao/utils-go/util"
 )
 
 type BenfenRpc struct {
@@ -19,6 +20,10 @@ func NewBenfenRpc(chainInfo *loader.ChainInfo) *BenfenRpc {
 	return &BenfenRpc{
 		chainInfo: chainInfo,
 	}
+}
+
+func (w *BenfenRpc) IsAddressValid(addr string) bool {
+	return strings.HasPrefix(addr, "BFC") && len(addr) == 71 && util.IsHex(addr[3:])
 }
 
 func (w *BenfenRpc) GetBalanceAtBlockNumber(ctx context.Context, ownerAddr string, tokenAddr string, blockNumber int64) (*big.Int, error) {

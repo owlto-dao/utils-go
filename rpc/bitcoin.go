@@ -7,6 +7,7 @@ import (
 	"math/big"
 	"strings"
 
+	"github.com/btcsuite/btcutil"
 	_ "github.com/gagliardetto/solana-go"
 	"github.com/ninja0404/go-unisat"
 	"github.com/owlto-dao/utils-go/apollosdk"
@@ -43,6 +44,11 @@ func NewBitcoinRpc(chainInfo *loader.ChainInfo, apolloSDK *apollosdk.ApolloSDK) 
 		chainInfo: chainInfo,
 		apolloSDK: apolloSDK,
 	}
+}
+
+func (w *BitcoinRpc) IsAddressValid(addr string) bool {
+	_, err := btcutil.DecodeAddress(addr, nil)
+	return err == nil
 }
 
 func (w *BitcoinRpc) GetTokenInfo(ctx context.Context, tokenAddr string) (*loader.TokenInfo, error) {

@@ -8,6 +8,7 @@ require (
 	github.com/apolloconfig/agollo/v4 v4.4.0
 	github.com/block-vision/sui-go-sdk v1.0.6
 	github.com/blocto/solana-go-sdk v1.30.0
+	github.com/btcsuite/btcutil v1.0.2
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/ethereum/go-ethereum v1.14.11
 	github.com/gagliardetto/binary v0.8.0
@@ -42,6 +43,7 @@ require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bits-and-blooms/bitset v1.14.3 // indirect
 	github.com/blendle/zapdriver v1.3.1 // indirect
+	github.com/btcsuite/btcd v0.20.1-beta // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.4 // indirect
 	github.com/cactus/tai64 v1.0.3 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect

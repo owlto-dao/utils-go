@@ -6,6 +6,7 @@ import (
 	"math/big"
 	"strings"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/owlto-dao/utils-go/loader"
 	"github.com/owlto-dao/utils-go/network"
 	"github.com/owlto-dao/utils-go/util"
@@ -27,6 +28,10 @@ func (w *ZksliteRpc) Client() interface{} {
 
 func (w *ZksliteRpc) Backend() int32 {
 	return 1
+}
+
+func (w *ZksliteRpc) IsAddressValid(addr string) bool {
+	return common.IsHexAddress(addr)
 }
 
 func (w *ZksliteRpc) GetTokenInfo(ctx context.Context, tokenAddr string) (*loader.TokenInfo, error) {

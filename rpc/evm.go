@@ -38,6 +38,10 @@ func NewEvmRpc(chainInfo *loader.ChainInfo) *EvmRpc {
 	}
 }
 
+func (w *EvmRpc) IsAddressValid(addr string) bool {
+	return common.IsHexAddress(addr)
+}
+
 func (w *EvmRpc) GetClient() *ethclient.Client {
 	return w.chainInfo.Client.(*ethclient.Client)
 }
