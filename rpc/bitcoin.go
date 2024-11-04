@@ -7,7 +7,7 @@ import (
 	"math/big"
 	"strings"
 
-	"github.com/btcsuite/btcutil"
+	"github.com/btcsuite/btcd/btcutil"
 	_ "github.com/gagliardetto/solana-go"
 	"github.com/ninja0404/go-unisat"
 	"github.com/owlto-dao/utils-go/apollosdk"
