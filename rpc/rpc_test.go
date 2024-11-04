@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/block-vision/sui-go-sdk/sui"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/gagliardetto/solana-go/rpc"
 	"github.com/owlto-dao/utils-go/loader"
@@ -32,4 +33,6 @@ func TestSol(t *testing.T) {
 	t.Log(solRpc.GetTokenInfo(context.TODO(), "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"))
 	t.Log(solRpc.GetTokenInfo(context.TODO(), "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"))
 
+	suiRpc := NewSuiRpc(&loader.ChainInfo{Name: "SuiMainnet", Client: sui.NewSuiClient("https://fullnode.mainnet.sui.io:443")})
+	t.Log(suiRpc.GetTokenInfo(context.TODO(), "0x9cd1754646c095963087261ed9a27b04292426f7f98a3e4923d5a1bfe29874f8::rkamala::RKAMALA"))
 }
