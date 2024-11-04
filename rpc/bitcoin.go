@@ -57,7 +57,12 @@ func (w *BitcoinRpc) IsAddressValid(addr string) bool {
 }
 
 func (w *BitcoinRpc) GetChecksumAddress(addr string) string {
-	return addr
+	netParams := &chaincfg.MainNetParams
+	if w.chainInfo.IsTestnet == 1 {
+		netParams = &chaincfg.TestNet3Params
+	}
+	a, _ := btcutil.DecodeAddress(addr, netParams)
+	return a.String()
 }
 
 func (w *BitcoinRpc) GetTokenInfo(ctx context.Context, tokenAddr string) (*loader.TokenInfo, error) {
