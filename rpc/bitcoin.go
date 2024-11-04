@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/btcsuite/btcd/chaincfg"
 	"math/big"
 	"strings"
 
@@ -47,7 +48,11 @@ func NewBitcoinRpc(chainInfo *loader.ChainInfo, apolloSDK *apollosdk.ApolloSDK) 
 }
 
 func (w *BitcoinRpc) IsAddressValid(addr string) bool {
-	_, err := btcutil.DecodeAddress(addr, nil)
+	netParams := &chaincfg.MainNetParams
+	if w.chainInfo.IsTestnet == 1 {
+		netParams = &chaincfg.TestNet3Params
+	}
+	_, err := btcutil.DecodeAddress(addr, netParams)
 	return err == nil
 }
 
