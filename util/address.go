@@ -45,7 +45,7 @@ func GetFuelChecksumAddress(address string) (string, error) {
 		return "", fmt.Errorf("empty address")
 	}
 	if len(address) == 66 {
-		return GetChecksumAddress64(address)
+		return toFuelChecksumAddress(address), nil
 	} else {
 		return "", fmt.Errorf("unsupport address len: %s", address)
 	}
