@@ -2,7 +2,6 @@ package rpc
 
 import (
 	"context"
-	"crypto/sha256"
 	"fmt"
 	"math/big"
 	"strings"
@@ -44,28 +43,8 @@ func (f *FuelRpc) IsAddressValid(addr string) bool {
 }
 
 func (f *FuelRpc) GetChecksumAddress(addr string) string {
-	addressHex := strings.ToLower(strings.TrimPrefix(addr, "0x"))
-
-	hasher := sha256.New()
-	hasher.Write([]byte(addressHex))
-	checksum := hasher.Sum(nil)
-
-	ret := "0x"
-	for i := 0; i < 32; i++ {
-		ha := addressHex[i*2]
-		hb := addressHex[i*2+1]
-		if checksum[i]&0xf0 >= 0x80 {
-			ret += strings.ToUpper(string(ha))
-		} else {
-			ret += string(ha)
-		}
-		if checksum[i]&0x0f >= 0x08 {
-			ret += strings.ToUpper(string(hb))
-		} else {
-			ret += string(hb)
-		}
-	}
-	return ret
+	caddr, _ := util.GetFuelChecksumAddress(addr)
+	return caddr
 }
 
 func (f *FuelRpc) GetLatestBlockNumber(ctx context.Context) (int64, error) {
