@@ -14,7 +14,7 @@ import (
 )
 
 func IsNativeAddress(address string) bool {
-	return IsHexStringZero(address) || address == owlconsts.SolanaZeroAddress
+	return IsHexStringZero(address) || address == owlconsts.SolanaZeroAddress || address == owlconsts.FuelZeroAddress
 }
 
 func GetChecksumAddress(address string) (string, error) {
