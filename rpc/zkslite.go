@@ -35,7 +35,7 @@ func (w *ZksliteRpc) IsAddressValid(addr string) bool {
 }
 
 func (w *ZksliteRpc) GetChecksumAddress(addr string) string {
-	return addr
+	return common.HexToAddress(addr).Hex()
 }
 
 func (w *ZksliteRpc) GetTokenInfo(ctx context.Context, tokenAddr string) (*loader.TokenInfo, error) {
