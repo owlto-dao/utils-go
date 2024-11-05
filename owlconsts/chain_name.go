@@ -66,4 +66,5 @@ const (
 	WorldChain         = "WorldChainMainnet"
 	Fuel               = "FuelMainnet"
 	SoneiumMinatoTest  = "SoneiumMinatoTestnet"
+	InkSepolia         = "InkSepolia"
 )
