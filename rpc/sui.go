@@ -75,17 +75,6 @@ func (w *SuiRpc) GetTokenInfo(ctx context.Context, tokenAddr string) (*loader.To
 		return nil, err
 	}
 
-	trsp, err := w.client.SuiXGetTotalSupply(ctx, models.SuiXGetTotalSupplyRequest{
-		CoinType: tokenAddr,
-	})
-	if err != nil {
-		return nil, err
-	}
-	totalSupply, ok := big.NewInt(0).SetString(trsp.Value, 0)
-	if !ok {
-		return nil, fmt.Errorf("sui totalsupply invalid %s", trsp.Value)
-	}
-
 	ti := &loader.TokenInfo{
 		TokenName:    rsp.Symbol,
 		ChainName:    w.chainInfo.Name,
@@ -93,9 +82,19 @@ func (w *SuiRpc) GetTokenInfo(ctx context.Context, tokenAddr string) (*loader.To
 		Decimals:     int32(rsp.Decimals),
 		FullName:     rsp.Name,
 		Icon:         rsp.IconUrl,
-		TotalSupply:  totalSupply,
 	}
 	w.tokenInfoMgr.AddTokenInfo(ti)
+
+	trsp, err := w.client.SuiXGetTotalSupply(ctx, models.SuiXGetTotalSupplyRequest{
+		CoinType: tokenAddr,
+	})
+	if err == nil {
+		totalSupply, ok := big.NewInt(0).SetString(trsp.Value, 0)
+		if ok {
+			ti.TotalSupply = totalSupply
+		}
+	}
+
 	return ti, nil
 }
 
