@@ -44,6 +44,7 @@ type ChainInfo struct {
 	RpcEndPoint             string
 	ExplorerUrl             string
 	OfficialRpc             string
+	MevRpc                  string
 	Disabled                int8
 	IsTestnet               int8
 	OrderWeight             int32
@@ -157,7 +158,7 @@ func (mgr *ChainInfoManager) GetAllChains() []*ChainInfo {
 
 func (mgr *ChainInfoManager) LoadAllChains() {
 	// Query the database to select only id and name fields
-	rows, err := mgr.db.Query("SELECT id, chainid, real_chainid, name, alias_name, backend, eip1559, network_code, icon, block_interval, rpc_end_point, explorer_url, official_rpc, disabled, is_testnet, order_weight, gas_token_name, gas_token_decimal, gas_token_icon, transfer_contract_address, deposit_contract_address, layer1 FROM t_chain_info")
+	rows, err := mgr.db.Query("SELECT id, chainid, real_chainid, name, alias_name, backend, eip1559, network_code, icon, block_interval, rpc_end_point, explorer_url, official_rpc, disabled, is_testnet, order_weight, gas_token_name, gas_token_decimal, gas_token_icon, transfer_contract_address, deposit_contract_address, layer1, mev_rpc_url FROM t_chain_info")
 
 	if err != nil || rows == nil {
 		mgr.alerter.AlertText("select t_chain_info error", err)
@@ -182,7 +183,7 @@ func (mgr *ChainInfoManager) LoadAllChains() {
 			&chain.Eip1559, &chain.NetworkCode, &chain.Icon, &chain.BlockInterval, &chain.RpcEndPoint, &chain.ExplorerUrl,
 			&chain.OfficialRpc, &chain.Disabled, &chain.IsTestnet, &chain.OrderWeight, &chain.GasTokenName,
 			&chain.GasTokenDecimal, &chain.GasTokenIcon, &chain.TransferContractAddress, &chain.DepositContractAddress,
-			&chain.Layer1); err != nil {
+			&chain.Layer1, &chain.MevRpc); err != nil {
 			mgr.alerter.AlertText("scan t_chain_info row error", err)
 		} else {
 			chain.ChainId = strings.TrimSpace(chain.ChainId)
@@ -193,6 +194,7 @@ func (mgr *ChainInfoManager) LoadAllChains() {
 			chain.RpcEndPoint = strings.TrimSpace(chain.RpcEndPoint)
 			chain.ExplorerUrl = strings.TrimSpace(chain.ExplorerUrl)
 			chain.OfficialRpc = strings.TrimSpace(chain.OfficialRpc)
+			chain.MevRpc = strings.TrimSpace(chain.MevRpc)
 			chain.GasTokenName = strings.TrimSpace(chain.GasTokenName)
 			chain.GasTokenIcon = strings.TrimSpace(chain.GasTokenIcon)
 			chain.TransferContractAddress.String = strings.TrimSpace(chain.TransferContractAddress.String)
