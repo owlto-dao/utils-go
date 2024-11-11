@@ -31,6 +31,7 @@ type SolanaBody struct {
 	Instructions []SolanaInstruction                        `json:"instructions"`
 	Keypairs     []SolanaKeypair                            `json:"keypairs"`
 	LookupTables map[solana.PublicKey]solana.PublicKeySlice `json:"lookup_tables"`
+	Mev          bool                                       `json:"mev"`
 }
 
 func (body *SolanaBody) AddInstructions(insts []solana.Instruction) error {

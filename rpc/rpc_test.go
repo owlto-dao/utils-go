@@ -34,5 +34,5 @@ func TestSol(t *testing.T) {
 	t.Log(solRpc.GetTokenInfo(context.TODO(), "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"))
 
 	suiRpc := NewSuiRpc(&loader.ChainInfo{Name: "SuiMainnet", Client: sui.NewSuiClient("https://fullnode.mainnet.sui.io:443")})
-	t.Log(suiRpc.GetTokenInfo(context.TODO(), "0x30a644c3485ee9b604f52165668895092191fcaf5489a846afa7fc11cdb9b24a::spam::SPAM"))
+	t.Log(suiRpc.GetTokenInfo(context.TODO(), "0xaf5c10e828852ed8f5cdcc824a80dbe11693be84284aee5dea47d6c2810b4a1::hopcat::HOPCAT"))
 }
