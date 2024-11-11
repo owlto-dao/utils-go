@@ -33,15 +33,21 @@ func (b *Bot) SendMessageCardByID(ctx context.Context, cardID string, chatIDOrOp
 	msg := lark.NewMsgBuffer(lark.MsgInteractive)
 	if strings.HasPrefix(chatIDOrOpenID, "oc_") {
 		om := msg.BindChatID(chatIDOrOpenID).Card(fmt.Sprintf(format, cardID, convert.ConvertToJsonString(template))).Build()
-		_, err := b.Bot.PostMessage(om)
+		resp, err := b.Bot.PostMessage(om)
 		if err != nil {
 			return err
 		}
+		if resp.Code != 0 {
+			return fmt.Errorf("send message to lark fail, code: %d, msg: %v", resp.Code, resp.Msg)
+		}
 	} else if strings.HasPrefix(chatIDOrOpenID, "ou_") {
 		om := msg.BindOpenID(chatIDOrOpenID).Card(fmt.Sprintf(format, cardID, convert.ConvertToJsonString(template))).Build()
-		_, err := b.Bot.PostMessage(om)
+		resp, err := b.Bot.PostMessage(om)
 		if err != nil {
 			return err
+		}
+		if resp.Code != 0 {
+			return fmt.Errorf("send message to lark fail, code: %d, msg: %v", resp.Code, resp.Msg)
 		}
 	} else {
 		return fmt.Errorf("unknown chatIDOrOpenID: %s", chatIDOrOpenID)
