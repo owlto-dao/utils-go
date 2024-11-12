@@ -8,6 +8,7 @@ require (
 	github.com/apolloconfig/agollo/v4 v4.4.0
 	github.com/block-vision/sui-go-sdk v1.0.6
 	github.com/blocto/solana-go-sdk v1.30.0
+	github.com/btcsuite/btcd v0.24.2
 	github.com/btcsuite/btcd/btcutil v1.1.6
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/ethereum/go-ethereum v1.14.11
@@ -15,7 +16,7 @@ require (
 	github.com/gagliardetto/gofuzz v1.2.2
 	github.com/gagliardetto/solana-go v1.10.0
 	github.com/gagliardetto/treeout v0.1.4
-	github.com/go-lark/lark v1.14.1
+	github.com/go-lark/lark v1.15.0
 	github.com/hashicorp/go-metrics v0.5.3
 	github.com/machinebox/graphql v0.2.2
 	github.com/mitchellh/mapstructure v1.5.0
@@ -43,7 +44,6 @@ require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bits-and-blooms/bitset v1.14.3 // indirect
 	github.com/blendle/zapdriver v1.3.1 // indirect
-	github.com/btcsuite/btcd v0.24.2 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.4 // indirect
 	github.com/btcsuite/btcd/chaincfg/chainhash v1.1.0 // indirect
 	github.com/cactus/tai64 v1.0.3 // indirect
