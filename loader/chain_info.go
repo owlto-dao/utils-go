@@ -1,7 +1,10 @@
 package loader
 
 import (
+	"context"
 	"database/sql"
+	"github.com/xssnick/tonutils-go/liteclient"
+	"github.com/xssnick/tonutils-go/ton"
 	"strconv"
 	"strings"
 	"sync"
@@ -28,6 +31,11 @@ const (
 	NetworkTypeBfc
 	SuiBackend
 	FuelBackend
+)
+
+const (
+	ConfigURLTestnet = "https://tonutils.com/testnet-global.config.json"
+	ConfigURLMainnet = "https://tonutils.com/global.config.json"
 )
 
 type ChainInfo struct {
@@ -217,6 +225,18 @@ func (mgr *ChainInfoManager) LoadAllChains() {
 				chain.Client = solrpc.New(chain.RpcEndPoint)
 			} else if chain.Backend == SuiBackend {
 				chain.Client = sui.NewSuiClient(chain.RpcEndPoint)
+			} else if chain.Backend == TonBackend {
+				client := liteclient.NewConnectionPool()
+				configUrl := ConfigURLTestnet
+				if chain.IsTestnet == 0 {
+					configUrl = ConfigURLMainnet
+				}
+				err = client.AddConnectionsFromConfigUrl(context.Background(), configUrl)
+				if err != nil {
+					mgr.alerter.AlertText("create ton client error", err)
+					continue
+				}
+				chain.Client = ton.NewAPIClient(client).WithRetry()
 			} else if chain.Backend == FuelBackend {
 				chain.Client = fuel.NewClient(chain.RpcEndPoint)
 			}

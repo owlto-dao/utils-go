@@ -33,6 +33,8 @@ func GetRpc(chainInfo *loader.ChainInfo, apolloSDK *apollosdk.ApolloSDK) (Rpc, e
 		return NewBitcoinRpc(chainInfo, apolloSDK), nil
 	} else if chainInfo.Backend == 5 {
 		return NewZksliteRpc(chainInfo), nil
+	} else if chainInfo.Backend == 6 {
+		return NewTonRpc(chainInfo), nil
 	} else if chainInfo.Backend == 8 {
 		return NewBenfenRpc(chainInfo), nil
 	} else if chainInfo.Backend == 9 {
