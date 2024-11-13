@@ -67,4 +67,5 @@ const (
 	Fuel               = "FuelMainnet"
 	SoneiumMinatoTest  = "SoneiumMinatoTestnet"
 	InkSepolia         = "InkSepolia"
+	Ton                = "TonMainnet"
 )
