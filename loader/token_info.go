@@ -7,7 +7,6 @@ import (
 	"sync"
 
 	"github.com/owlto-dao/utils-go/alert"
-	"github.com/owlto-dao/utils-go/owlconsts"
 )
 
 type TokenInfo struct {
@@ -122,48 +121,10 @@ func (mgr *TokenInfoManager) GetAllTokens() []*TokenInfo {
 	return mgr.allTokens
 }
 
-func (mgr *TokenInfoManager) MergeNativeTokens(chainManager ChainInfoManager) {
-	allIDs := chainManager.GetChainInfoAutoIds()
-
-	mgr.mutex.Lock()
-	defer mgr.mutex.Unlock()
-	for _, id := range allIDs {
-		chainInfo, ok := chainManager.GetChainInfoById(id)
-		if !ok {
-			continue
-		}
-		var token TokenInfo
-		token.ChainName = chainInfo.Name
-		token.TokenAddress = owlconsts.EvmZeroAddress
-		if chainInfo.Backend == SolanaBackend {
-			token.TokenAddress = owlconsts.SolanaZeroAddress
-		}
-		token.TokenName = chainInfo.GasTokenName
-		token.Decimals = chainInfo.GasTokenDecimal
-		token.Icon = chainInfo.GasTokenIcon
-
-		tokenAddrs, ok := mgr.chainNameTokenAddrs[strings.ToLower(token.ChainName)]
-		if !ok {
-			tokenAddrs = make(map[string]*TokenInfo)
-			mgr.chainNameTokenAddrs[strings.ToLower(token.ChainName)] = tokenAddrs
-		}
-		tokenNames, ok := mgr.chainNameTokenNames[strings.ToLower(token.ChainName)]
-		if !ok {
-			tokenNames = make(map[string]*TokenInfo)
-			mgr.chainNameTokenNames[strings.ToLower(token.ChainName)] = tokenNames
-		}
-		_, ok = mgr.chainNameTokenNames[strings.ToLower(token.ChainName)][strings.ToLower(token.TokenName)]
-		if !ok {
-			tokenNames[strings.ToLower(token.TokenName)] = &token
-			tokenAddrs[strings.ToLower(token.TokenAddress)] = &token
-			mgr.allTokens = append(mgr.allTokens, &token)
-		}
-
+func (mgr *TokenInfoManager) LoadAllToken(chainManager *ChainInfoManager) {
+	if chainManager == nil {
+		panic("chainManager is required")
 	}
-
-}
-
-func (mgr *TokenInfoManager) LoadAllToken() {
 	// Query the database to select only id and name fields
 	rows, err := mgr.db.Query("SELECT token_name, chain_name, token_address, decimals, icon FROM t_token_info")
 
@@ -183,7 +144,7 @@ func (mgr *TokenInfoManager) LoadAllToken() {
 	for rows.Next() {
 		var token TokenInfo
 
-		if err := rows.Scan(&token.TokenName, &token.ChainName, &token.TokenAddress, &token.Decimals, &token.Icon); err != nil {
+		if err = rows.Scan(&token.TokenName, &token.ChainName, &token.TokenAddress, &token.Decimals, &token.Icon); err != nil {
 			mgr.alerter.AlertText("scan t_token_info row error", err)
 		} else {
 			token.ChainName = strings.TrimSpace(token.ChainName)
@@ -210,9 +171,40 @@ func (mgr *TokenInfoManager) LoadAllToken() {
 	}
 
 	// Check for errors from iterating over rows
-	if err := rows.Err(); err != nil {
+	if err = rows.Err(); err != nil {
 		mgr.alerter.AlertText("get next t_token_info row error", err)
 		return
+	}
+
+	allIDs := chainManager.GetChainInfoAutoIds()
+	for _, id := range allIDs {
+		chainInfo, ok := chainManager.GetChainInfoById(id)
+		if !ok {
+			continue
+		}
+		var token TokenInfo
+		token.ChainName = chainInfo.Name
+		token.TokenAddress = chainInfo.GasTokenAddress
+		token.TokenName = chainInfo.GasTokenName
+		token.Decimals = chainInfo.GasTokenDecimal
+		token.Icon = chainInfo.GasTokenIcon
+
+		tokenAddrs, ok := chainNameTokenAddrs[strings.ToLower(token.ChainName)]
+		if !ok {
+			tokenAddrs = make(map[string]*TokenInfo)
+			chainNameTokenAddrs[strings.ToLower(token.ChainName)] = tokenAddrs
+		}
+		tokenNames, ok := chainNameTokenNames[strings.ToLower(token.ChainName)]
+		if !ok {
+			tokenNames = make(map[string]*TokenInfo)
+			chainNameTokenNames[strings.ToLower(token.ChainName)] = tokenNames
+		}
+		_, ok = chainNameTokenNames[strings.ToLower(token.ChainName)][strings.ToLower(token.TokenName)]
+		if !ok {
+			tokenNames[strings.ToLower(token.TokenName)] = &token
+			tokenAddrs[strings.ToLower(token.TokenAddress)] = &token
+			allTokens = append(allTokens, &token)
+		}
 	}
 
 	mgr.mutex.Lock()

@@ -57,6 +57,7 @@ type ChainInfo struct {
 	IsTestnet               int8
 	OrderWeight             int32
 	GasTokenName            string
+	GasTokenAddress         string
 	GasTokenDecimal         int32
 	GasTokenIcon            string
 	TransferContractAddress sql.NullString
@@ -189,7 +190,7 @@ func (mgr *ChainInfoManager) LoadAllChains() {
 
 		if err := rows.Scan(&chain.Id, &chain.ChainId, &chain.RealChainId, &chain.Name, &chain.AliasName, &chain.Backend,
 			&chain.Eip1559, &chain.NetworkCode, &chain.Icon, &chain.BlockInterval, &chain.RpcEndPoint, &chain.ExplorerUrl,
-			&chain.OfficialRpc, &chain.Disabled, &chain.IsTestnet, &chain.OrderWeight, &chain.GasTokenName,
+			&chain.OfficialRpc, &chain.Disabled, &chain.IsTestnet, &chain.OrderWeight, &chain.GasTokenName, &chain.GasTokenAddress,
 			&chain.GasTokenDecimal, &chain.GasTokenIcon, &chain.TransferContractAddress, &chain.DepositContractAddress,
 			&chain.Layer1, &chain.MevRpc); err != nil {
 			mgr.alerter.AlertText("scan t_chain_info row error", err)
@@ -204,6 +205,7 @@ func (mgr *ChainInfoManager) LoadAllChains() {
 			chain.OfficialRpc = strings.TrimSpace(chain.OfficialRpc)
 			chain.MevRpc = strings.TrimSpace(chain.MevRpc)
 			chain.GasTokenName = strings.TrimSpace(chain.GasTokenName)
+			chain.GasTokenAddress = strings.TrimSpace(chain.GasTokenAddress)
 			chain.GasTokenIcon = strings.TrimSpace(chain.GasTokenIcon)
 			chain.TransferContractAddress.String = strings.TrimSpace(chain.TransferContractAddress.String)
 			chain.DepositContractAddress.String = strings.TrimSpace(chain.DepositContractAddress.String)
