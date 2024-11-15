@@ -2,6 +2,7 @@ package loader
 
 import (
 	"database/sql"
+	"fmt"
 	"math/big"
 	"strings"
 	"sync"
@@ -162,6 +163,10 @@ func (mgr *TokenInfoManager) MergeNativeTokens(chainManager ChainInfoManager) {
 }
 
 func (mgr *TokenInfoManager) LoadAllToken(chainManager *ChainInfoManager) {
+	if chainManager == nil {
+		mgr.alerter.AlertText("chainManager is required", fmt.Errorf("chainManager is required"))
+		return
+	}
 	// Query the database to select only id and name fields
 	rows, err := mgr.db.Query("SELECT token_name, chain_name, token_address, decimals, icon FROM t_token_info")
 
