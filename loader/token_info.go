@@ -122,45 +122,6 @@ func (mgr *TokenInfoManager) GetAllTokens() []*TokenInfo {
 	return mgr.allTokens
 }
 
-func (mgr *TokenInfoManager) MergeNativeTokens(chainManager ChainInfoManager) {
-	allIDs := chainManager.GetChainInfoAutoIds()
-
-	mgr.mutex.Lock()
-	defer mgr.mutex.Unlock()
-	for _, id := range allIDs {
-		chainInfo, ok := chainManager.GetChainInfoById(id)
-		if !ok {
-			continue
-		}
-		var token TokenInfo
-		token.ChainName = chainInfo.Name
-		token.TokenAddress = owlconsts.EvmZeroAddress
-		if chainInfo.Backend == SolanaBackend {
-			token.TokenAddress = owlconsts.SolanaZeroAddress
-		}
-		token.TokenName = chainInfo.GasTokenName
-		token.Decimals = chainInfo.GasTokenDecimal
-		token.Icon = chainInfo.GasTokenIcon
-
-		tokenAddrs, ok := mgr.chainNameTokenAddrs[strings.ToLower(token.ChainName)]
-		if !ok {
-			tokenAddrs = make(map[string]*TokenInfo)
-			mgr.chainNameTokenAddrs[strings.ToLower(token.ChainName)] = tokenAddrs
-		}
-		tokenNames, ok := mgr.chainNameTokenNames[strings.ToLower(token.ChainName)]
-		if !ok {
-			tokenNames = make(map[string]*TokenInfo)
-			mgr.chainNameTokenNames[strings.ToLower(token.ChainName)] = tokenNames
-		}
-		_, ok = mgr.chainNameTokenNames[strings.ToLower(token.ChainName)][strings.ToLower(token.TokenName)]
-		if !ok {
-			tokenNames[strings.ToLower(token.TokenName)] = &token
-			tokenAddrs[strings.ToLower(token.TokenAddress)] = &token
-			mgr.allTokens = append(mgr.allTokens, &token)
-		}
-	}
-}
-
 func (mgr *TokenInfoManager) LoadAllToken(chainManager *ChainInfoManager) {
 	if chainManager == nil {
 		panic("chainManager is required")
