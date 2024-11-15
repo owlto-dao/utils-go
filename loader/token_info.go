@@ -7,7 +7,6 @@ import (
 	"sync"
 
 	"github.com/owlto-dao/utils-go/alert"
-	"github.com/owlto-dao/utils-go/owlconsts"
 )
 
 type TokenInfo struct {
@@ -185,10 +184,7 @@ func (mgr *TokenInfoManager) LoadAllToken(chainManager *ChainInfoManager) {
 		}
 		var token TokenInfo
 		token.ChainName = chainInfo.Name
-		token.TokenAddress = owlconsts.EvmZeroAddress
-		if chainInfo.Backend == SolanaBackend {
-			token.TokenAddress = owlconsts.SolanaZeroAddress
-		}
+		token.TokenAddress = chainInfo.GasTokenAddress
 		token.TokenName = chainInfo.GasTokenName
 		token.Decimals = chainInfo.GasTokenDecimal
 		token.Icon = chainInfo.GasTokenIcon
