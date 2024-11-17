@@ -238,7 +238,7 @@ func (mgr *ChainInfoManager) LoadAllChains() {
 					mgr.alerter.AlertText("create ton client error", err)
 					continue
 				}
-				chain.Client = ton.NewAPIClient(client).WithRetry()
+				chain.Client = ton.NewAPIClient(client)
 			} else if chain.Backend == FuelBackend {
 				chain.Client = fuel.NewClient(chain.RpcEndPoint)
 			}
