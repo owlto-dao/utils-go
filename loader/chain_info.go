@@ -3,8 +3,6 @@ package loader
 import (
 	"context"
 	"database/sql"
-	"github.com/xssnick/tonutils-go/liteclient"
-	"github.com/xssnick/tonutils-go/ton"
 	"strconv"
 	"strings"
 	"sync"
@@ -15,7 +13,11 @@ import (
 	solrpc "github.com/gagliardetto/solana-go/rpc"
 	"github.com/owlto-dao/utils-go/alert"
 	"github.com/owlto-dao/utils-go/convert"
+	"github.com/owlto-dao/utils-go/owlconsts"
 	"github.com/sentioxyz/fuel-go"
+	"github.com/xssnick/tonutils-go/liteclient"
+	"github.com/xssnick/tonutils-go/ton"
+	"github.com/zksync-sdk/zksync2-go/clients"
 )
 
 type Backend int32
@@ -212,7 +214,11 @@ func (mgr *ChainInfoManager) LoadAllChains() {
 			chain.Layer1.String = strings.TrimSpace(chain.Layer1.String)
 
 			if chain.Backend == EthereumBackend {
-				chain.Client, err = ethclient.Dial(chain.RpcEndPoint)
+				if chain.Name == owlconsts.ZKSyncEra {
+					chain.Client, err = clients.Dial(chain.RpcEndPoint)
+				} else {
+					chain.Client, err = ethclient.Dial(chain.RpcEndPoint)
+				}
 				if err != nil {
 					mgr.alerter.AlertText("create evm client error", err)
 					continue

@@ -20,6 +20,7 @@ import (
 	"github.com/owlto-dao/utils-go/owlconsts"
 	"github.com/owlto-dao/utils-go/pointer"
 	"github.com/owlto-dao/utils-go/util"
+	"github.com/zksync-sdk/zksync2-go/clients"
 	"golang.org/x/crypto/sha3"
 )
 
@@ -27,15 +28,129 @@ type EvmRpc struct {
 	tokenInfoMgr *loader.TokenInfoManager
 	chainInfo    *loader.ChainInfo
 	erc20ABI     abi.ABI
+	client       EVMClient
 }
 
 func NewEvmRpc(chainInfo *loader.ChainInfo) *EvmRpc {
-	erc20ABI, _ := abi.JSON(strings.NewReader(erc20.Erc20ABI))
+	erc20ABI, _ := abi.JSON(strings.NewReader(erc20.Erc20MetaData.ABI))
+	var client EVMClient
+	switch chainInfo.Name {
+	case owlconsts.ZKSyncEra:
+		client = &ZkSyncClientWrapper{client: chainInfo.Client.(*clients.Client)}
+	default:
+		client = &EthClientWrapper{client: chainInfo.Client.(*ethclient.Client)}
+	}
+
 	return &EvmRpc{
 		chainInfo:    chainInfo,
 		tokenInfoMgr: loader.NewTokenInfoManager(nil, nil),
 		erc20ABI:     erc20ABI,
+		client:       client,
 	}
+}
+
+type EVMClient interface {
+	BalanceAt(ctx context.Context, account common.Address, blockNumber *big.Int) (*big.Int, error)
+	TransactionReceipt(ctx context.Context, txHash common.Hash) (*ethtypes.Receipt, error)
+	BlockNumber(ctx context.Context) (uint64, error)
+	BatchCallContext(ctx context.Context, b []rpc.BatchElem) error
+	Client() *rpc.Client
+	EstimateGas(ctx context.Context, call ethereum.CallMsg) (uint64, error)
+	SuggestGasPrice(ctx context.Context) (*big.Int, error)
+	SuggestGasTipCap(ctx context.Context) (*big.Int, error)
+	HeaderByNumber(ctx context.Context, number *big.Int) (*ethtypes.Header, error)
+}
+
+type EthClientWrapper struct {
+	client *ethclient.Client
+}
+
+func (e *EthClientWrapper) HeaderByNumber(ctx context.Context, number *big.Int) (*ethtypes.Header, error) {
+	return e.client.HeaderByNumber(ctx, number)
+}
+
+func (e *EthClientWrapper) SuggestGasTipCap(ctx context.Context) (*big.Int, error) {
+	return e.client.SuggestGasTipCap(ctx)
+}
+
+func (e *EthClientWrapper) SuggestGasPrice(ctx context.Context) (*big.Int, error) {
+	return e.client.SuggestGasPrice(ctx)
+}
+
+func (e *EthClientWrapper) BalanceAt(ctx context.Context, account common.Address, blockNumber *big.Int) (*big.Int, error) {
+	return e.client.BalanceAt(ctx, account, blockNumber)
+}
+
+func (e *EthClientWrapper) TransactionReceipt(ctx context.Context, txHash common.Hash) (*ethtypes.Receipt, error) {
+	return e.client.TransactionReceipt(ctx, txHash)
+}
+
+func (e *EthClientWrapper) BlockNumber(ctx context.Context) (uint64, error) {
+	return e.client.BlockNumber(ctx)
+}
+
+func (e *EthClientWrapper) BatchCallContext(ctx context.Context, b []rpc.BatchElem) error {
+	return e.client.Client().BatchCallContext(ctx, b)
+}
+
+func (e *EthClientWrapper) Client() *rpc.Client {
+	return e.client.Client()
+}
+
+func (e *EthClientWrapper) EstimateGas(ctx context.Context, msg ethereum.CallMsg) (uint64, error) {
+	return e.client.EstimateGas(ctx, msg)
+}
+
+func (e *EthClientWrapper) RawClient() *ethclient.Client {
+	return e.client
+}
+
+type ZkSyncClientWrapper struct {
+	client *clients.Client
+}
+
+func (z *ZkSyncClientWrapper) HeaderByNumber(ctx context.Context, number *big.Int) (*ethtypes.Header, error) {
+	return z.client.HeaderByNumber(ctx, number)
+}
+
+func (z *ZkSyncClientWrapper) SuggestGasTipCap(ctx context.Context) (*big.Int, error) {
+	return z.client.SuggestGasTipCap(ctx)
+}
+
+func (z *ZkSyncClientWrapper) SuggestGasPrice(ctx context.Context) (*big.Int, error) {
+	return z.client.SuggestGasPrice(ctx)
+}
+
+func (z *ZkSyncClientWrapper) BalanceAt(ctx context.Context, account common.Address, blockNumber *big.Int) (*big.Int, error) {
+	return z.client.BalanceAt(ctx, account, blockNumber)
+}
+
+func (z *ZkSyncClientWrapper) TransactionReceipt(ctx context.Context, txHash common.Hash) (*ethtypes.Receipt, error) {
+	res, err := z.client.TransactionReceipt(ctx, txHash)
+	if err != nil {
+		return nil, err
+	}
+	return &res.Receipt, err
+}
+
+func (z *ZkSyncClientWrapper) BlockNumber(ctx context.Context) (uint64, error) {
+	return z.client.BlockNumber(ctx)
+}
+
+func (z *ZkSyncClientWrapper) BatchCallContext(ctx context.Context, b []rpc.BatchElem) error {
+	return z.client.Client().BatchCallContext(ctx, b)
+}
+
+func (z *ZkSyncClientWrapper) Client() *rpc.Client {
+	return z.client.Client()
+}
+
+func (z *ZkSyncClientWrapper) EstimateGas(ctx context.Context, msg ethereum.CallMsg) (uint64, error) {
+	return z.client.EstimateGas(ctx, msg)
+}
+
+func (z *ZkSyncClientWrapper) RawClient() *clients.Client {
+	return z.client
 }
 
 func (w *EvmRpc) IsAddressValid(addr string) bool {
@@ -48,6 +163,10 @@ func (w *EvmRpc) GetChecksumAddress(addr string) string {
 
 func (w *EvmRpc) GetClient() *ethclient.Client {
 	return w.chainInfo.Client.(*ethclient.Client)
+}
+
+func (w *EvmRpc) GetZKSyncEraClient() *clients.Client {
+	return w.chainInfo.Client.(*clients.Client)
 }
 
 func (w *EvmRpc) Client() interface{} {
@@ -130,7 +249,7 @@ func (w *EvmRpc) GetTokenInfo(ctx context.Context, tokenAddr string) (*loader.To
 		Result: &totalSupplyHex,
 	})
 
-	if err := w.GetClient().Client().BatchCallContext(ctx, be); err != nil {
+	if err := w.client.BatchCallContext(ctx, be); err != nil {
 		return nil, err
 	}
 	for _, b := range be {
@@ -177,13 +296,19 @@ func (w *EvmRpc) GetTokenInfo(ctx context.Context, tokenAddr string) (*loader.To
 	return ti, nil
 }
 
+func (w *EvmRpc) getERC20Contract(tokenAddr string) (*erc20.Erc20, error) {
+	if w.chainInfo.Name == owlconsts.ZKSyncEra {
+		return erc20.NewErc20(common.HexToAddress(tokenAddr), w.client.(*ZkSyncClientWrapper).RawClient())
+	}
+	return erc20.NewErc20(common.HexToAddress(tokenAddr), w.client.(*EthClientWrapper).RawClient())
+}
+
 func (w *EvmRpc) GetAllowance(ctx context.Context, ownerAddr string, tokenAddr string, spenderAddr string) (*big.Int, error) {
-	econtract, err := erc20.NewErc20(common.HexToAddress(tokenAddr), w.GetClient())
+	econtract, err := w.getERC20Contract(tokenAddr)
 	if err != nil {
 		return nil, err
 	}
 	allowance, err := econtract.Allowance(nil, common.HexToAddress(ownerAddr), common.HexToAddress(spenderAddr))
-
 	if err != nil {
 		return nil, err
 	}
@@ -193,58 +318,40 @@ func (w *EvmRpc) GetAllowance(ctx context.Context, ownerAddr string, tokenAddr s
 func (w *EvmRpc) GetBalanceAtBlockNumber(ctx context.Context, ownerAddr string, tokenAddr string, blockNumber int64) (*big.Int, error) {
 	ownerAddr = strings.TrimSpace(ownerAddr)
 	tokenAddr = strings.TrimSpace(tokenAddr)
+	blockNum := big.NewInt(blockNumber)
 
 	if util.IsHexStringZero(tokenAddr) {
-		nativeBalance, err := w.GetClient().BalanceAt(ctx, common.HexToAddress(ownerAddr), big.NewInt(blockNumber))
-		if err != nil {
-			return nil, err
-		}
-		return nativeBalance, nil
-	} else {
-		econtract, err := erc20.NewErc20(common.HexToAddress(tokenAddr), w.GetClient())
-		if err != nil {
-			return nil, err
-		}
-
-		balance, err := econtract.BalanceOf(&bind.CallOpts{
-			Pending:     false,
-			Context:     ctx,
-			BlockNumber: big.NewInt(blockNumber),
-		}, common.HexToAddress(ownerAddr))
-
-		if err != nil {
-			return nil, err
-		}
-		return balance, nil
+		return w.client.BalanceAt(ctx, common.HexToAddress(ownerAddr), blockNum)
 	}
+
+	econtract, err := w.getERC20Contract(tokenAddr)
+	if err != nil {
+		return nil, err
+	}
+	return econtract.BalanceOf(&bind.CallOpts{
+		Pending:     false,
+		Context:     ctx,
+		BlockNumber: blockNum,
+	}, common.HexToAddress(ownerAddr))
 }
 
-func (w *EvmRpc) GetBalance(ctx context.Context, ownerAddr string, tokenAddr string) (*big.Int, error) {
+func (w *EvmRpc) GetBalance(ctx context.Context, ownerAddr, tokenAddr string) (*big.Int, error) {
 	ownerAddr = strings.TrimSpace(ownerAddr)
 	tokenAddr = strings.TrimSpace(tokenAddr)
 
 	if util.IsHexStringZero(tokenAddr) {
-		nativeBalance, err := w.GetClient().BalanceAt(ctx, common.HexToAddress(ownerAddr), nil)
-		if err != nil {
-			return nil, err
-		}
-		return nativeBalance, nil
-	} else {
-		econtract, err := erc20.NewErc20(common.HexToAddress(tokenAddr), w.GetClient())
-		if err != nil {
-			return nil, err
-		}
-		balance, err := econtract.BalanceOf(nil, common.HexToAddress(ownerAddr))
-
-		if err != nil {
-			return nil, err
-		}
-		return balance, nil
+		return w.client.BalanceAt(ctx, common.HexToAddress(ownerAddr), nil)
 	}
+
+	econtract, err := w.getERC20Contract(tokenAddr)
+	if err != nil {
+		return nil, err
+	}
+	return econtract.BalanceOf(&bind.CallOpts{Context: ctx}, common.HexToAddress(ownerAddr))
 }
 
 func (w *EvmRpc) IsTxSuccess(ctx context.Context, hash string) (bool, int64, error) {
-	receipt, err := w.GetClient().TransactionReceipt(ctx, common.HexToHash(hash))
+	receipt, err := w.client.TransactionReceipt(ctx, common.HexToHash(hash))
 	if err != nil {
 		return false, 0, err
 	}
@@ -255,7 +362,7 @@ func (w *EvmRpc) IsTxSuccess(ctx context.Context, hash string) (bool, int64, err
 }
 
 func (w *EvmRpc) GetLatestBlockNumber(ctx context.Context) (int64, error) {
-	blockNumber, err := w.GetClient().BlockNumber(ctx)
+	blockNumber, err := w.client.BlockNumber(ctx)
 	if err != nil {
 		log.Errorf("%v get latest block number error %v", w.chainInfo.Name, err)
 		return 0, err
@@ -263,7 +370,7 @@ func (w *EvmRpc) GetLatestBlockNumber(ctx context.Context) (int64, error) {
 	return int64(blockNumber), nil
 }
 
-func (w *EvmRpc) EstimateGas(fromAddress string, recipient string, tokenAddress string, value *big.Int) (uint64, error) {
+func (w *EvmRpc) EstimateGas(ctx context.Context, fromAddress string, recipient string, tokenAddress string, value *big.Int) (uint64, error) {
 	var msg ethereum.CallMsg
 	if util.IsNativeAddress(tokenAddress) {
 		switch w.chainInfo.Name {
@@ -286,31 +393,31 @@ func (w *EvmRpc) EstimateGas(fromAddress string, recipient string, tokenAddress 
 		}
 	}
 
-	gasLimit, err := w.GetClient().EstimateGas(context.Background(), msg)
+	gasLimit, err := w.client.EstimateGas(ctx, msg)
 	if err != nil {
 		return 0, err
 	}
 	return gasLimit, nil
 }
 
-func (w *EvmRpc) SuggestGasPrice() (*big.Int, error) {
-	gasPrice, err := w.GetClient().SuggestGasPrice(context.Background())
+func (w *EvmRpc) SuggestGasPrice(ctx context.Context) (*big.Int, error) {
+	gasPrice, err := w.client.SuggestGasPrice(context.Background())
 	if err != nil {
 		return nil, err
 	}
 	return gasPrice, nil
 }
 
-func (w *EvmRpc) SuggestGasTipCap() (*big.Int, error) {
-	gasTipCap, err := w.GetClient().SuggestGasTipCap(context.Background())
+func (w *EvmRpc) SuggestGasTipCap(ctx context.Context) (*big.Int, error) {
+	gasTipCap, err := w.client.SuggestGasTipCap(ctx)
 	if err != nil {
 		return nil, err
 	}
 	return gasTipCap, nil
 }
 
-func (w *EvmRpc) GetBaseFee() (*big.Int, error) {
-	header, err := w.GetClient().HeaderByNumber(context.Background(), nil)
+func (w *EvmRpc) GetBaseFee(ctx context.Context) (*big.Int, error) {
+	header, err := w.client.HeaderByNumber(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
