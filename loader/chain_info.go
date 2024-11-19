@@ -51,6 +51,7 @@ type ChainInfo struct {
 	NetworkCode             int32
 	Icon                    string
 	BlockInterval           int32
+	Timeout                 int32
 	RpcEndPoint             string
 	ExplorerUrl             string
 	OfficialRpc             string
@@ -169,7 +170,7 @@ func (mgr *ChainInfoManager) GetAllChains() []*ChainInfo {
 
 func (mgr *ChainInfoManager) LoadAllChains() {
 	// Query the database to select only id and name fields
-	rows, err := mgr.db.Query("SELECT id, chainid, real_chainid, name, alias_name, backend, eip1559, network_code, icon, block_interval, rpc_end_point, explorer_url, official_rpc, disabled, is_testnet, order_weight, gas_token_name, gas_token_address, gas_token_decimal, gas_token_icon, transfer_contract_address, deposit_contract_address, layer1, mev_rpc_url FROM t_chain_info")
+	rows, err := mgr.db.Query("SELECT id, chainid, real_chainid, name, alias_name, backend, eip1559, network_code, icon, block_interval, timeout, rpc_end_point, explorer_url, official_rpc, disabled, is_testnet, order_weight, gas_token_name, gas_token_address, gas_token_decimal, gas_token_icon, transfer_contract_address, deposit_contract_address, layer1, mev_rpc_url FROM t_chain_info")
 
 	if err != nil || rows == nil {
 		mgr.alerter.AlertText("select t_chain_info error", err)
@@ -191,7 +192,7 @@ func (mgr *ChainInfoManager) LoadAllChains() {
 		var chain ChainInfo
 
 		if err = rows.Scan(&chain.Id, &chain.ChainId, &chain.RealChainId, &chain.Name, &chain.AliasName, &chain.Backend,
-			&chain.Eip1559, &chain.NetworkCode, &chain.Icon, &chain.BlockInterval, &chain.RpcEndPoint, &chain.ExplorerUrl,
+			&chain.Eip1559, &chain.NetworkCode, &chain.Icon, &chain.BlockInterval, &chain.Timeout, &chain.RpcEndPoint, &chain.ExplorerUrl,
 			&chain.OfficialRpc, &chain.Disabled, &chain.IsTestnet, &chain.OrderWeight, &chain.GasTokenName, &chain.GasTokenAddress,
 			&chain.GasTokenDecimal, &chain.GasTokenIcon, &chain.TransferContractAddress, &chain.DepositContractAddress,
 			&chain.Layer1, &chain.MevRpc); err != nil {
