@@ -68,4 +68,5 @@ const (
 	SoneiumMinatoTest  = "SoneiumMinatoTestnet"
 	InkSepolia         = "InkSepolia"
 	Ton                = "TonMainnet"
+	Duck               = "DuckChainMainnet"
 )
