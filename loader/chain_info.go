@@ -7,9 +7,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/xssnick/tonutils-go/liteclient"
-	"github.com/xssnick/tonutils-go/ton"
-
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/block-vision/sui-go-sdk/sui"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -17,6 +14,8 @@ import (
 	"github.com/owlto-dao/utils-go/alert"
 	"github.com/owlto-dao/utils-go/convert"
 	"github.com/sentioxyz/fuel-go"
+	"github.com/xssnick/tonutils-go/liteclient"
+	"github.com/xssnick/tonutils-go/ton"
 )
 
 type Backend int32
