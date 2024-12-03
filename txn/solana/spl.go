@@ -78,16 +78,26 @@ func SqlTransferBody(senderAddr string, tokenAddr string, receiverAddr string, a
 		return nil, err
 	}
 
-	inst := token.NewTransferCheckedInstruction(
-		amount.Uint64(),
-		uint8(decimals),
-		senderAta,
-		mintpk,
-		receiverAta,
-		senderpk,
-		[]solana.PublicKey{},
-	).Build()
-
-	return ToBody([]solana.Instruction{inst}, nil)
+	if decimals >= 0 {
+		inst := token.NewTransferCheckedInstruction(
+			amount.Uint64(),
+			uint8(decimals),
+			senderAta,
+			mintpk,
+			receiverAta,
+			senderpk,
+			[]solana.PublicKey{},
+		).Build()
+		return ToBody([]solana.Instruction{inst}, nil)
+	} else {
+		inst := token.NewTransferInstruction(
+			amount.Uint64(),
+			senderAta,
+			receiverAta,
+			senderpk,
+			[]solana.PublicKey{},
+		).Build()
+		return ToBody([]solana.Instruction{inst}, nil)
+	}
 
 }
