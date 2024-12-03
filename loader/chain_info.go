@@ -238,6 +238,7 @@ func (mgr *ChainInfoManager) LoadAllChains() {
 				err = client.AddConnectionsFromConfigUrl(context.Background(), configUrl)
 				if err != nil {
 					mgr.alerter.AlertText("create ton client error", err)
+					client.Stop()
 					continue
 				}
 				chain.Client = ton.NewAPIClient(client)
