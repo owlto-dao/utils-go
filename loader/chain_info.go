@@ -231,21 +231,21 @@ func (mgr *ChainInfoManager) LoadAllChains() {
 			} else if chain.Backend == SuiBackend {
 				chain.Client = sui.NewSuiClient(chain.RpcEndPoint)
 			} else if chain.Backend == TonBackend {
-				mgr.resetTonClient()
-
-				client := liteclient.NewConnectionPool()
-				configUrl := ConfigURLTestnet
-				if chain.IsTestnet == 0 {
-					configUrl = ConfigURLMainnet
+				if mgr.tonClient == nil {
+					client := liteclient.NewConnectionPool()
+					configUrl := ConfigURLTestnet
+					if chain.IsTestnet == 0 {
+						configUrl = ConfigURLMainnet
+					}
+					err = client.AddConnectionsFromConfigUrl(context.Background(), configUrl)
+					if err != nil {
+						mgr.alerter.AlertText("create ton client error", err)
+						client.Stop()
+						continue
+					}
+					chain.Client = ton.NewAPIClient(client).WithRetry()
+					mgr.tonClient = client
 				}
-				err = client.AddConnectionsFromConfigUrl(context.Background(), configUrl)
-				if err != nil {
-					mgr.alerter.AlertText("create ton client error", err)
-					client.Stop()
-					continue
-				}
-				chain.Client = ton.NewAPIClient(client)
-				mgr.tonClient = client
 			} else if chain.Backend == FuelBackend {
 				chain.Client = fuel.NewClient(chain.RpcEndPoint)
 			}
@@ -272,14 +272,4 @@ func (mgr *ChainInfoManager) LoadAllChains() {
 	mgr.netcodeChains = netcodeChains
 	mgr.allChains = allChains
 	mgr.mutex.Unlock()
-}
-
-func (mgr *ChainInfoManager) resetTonClient() {
-	mgr.mutex.Lock()
-	defer mgr.mutex.Unlock()
-
-	if mgr.tonClient != nil {
-		mgr.tonClient.Stop()
-		mgr.tonClient = nil
-	}
 }
