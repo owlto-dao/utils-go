@@ -292,7 +292,7 @@ func (w *EvmRpc) EstimateGas(ctx context.Context, fromAddress string, recipient 
 		}
 	}
 
-	gasLimit, err := w.GetClient().EstimateGas(context.Background(), msg)
+	gasLimit, err := w.GetClient().EstimateGas(ctx, msg)
 	if err != nil {
 		return 0, err
 	}
