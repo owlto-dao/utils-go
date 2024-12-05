@@ -263,13 +263,19 @@ func (w *EvmRpc) GetLatestBlockNumber(ctx context.Context) (int64, error) {
 	return int64(blockNumber), nil
 }
 
-func (w *EvmRpc) EstimateGas(fromAddress string, recipient string, tokenAddress string, value *big.Int) (uint64, error) {
+func (w *EvmRpc) EstimateGas(ctx context.Context, fromAddress string, recipient string, tokenAddress string, value *big.Int) (uint64, error) {
 	var msg ethereum.CallMsg
 	if util.IsNativeAddress(tokenAddress) {
 		switch w.chainInfo.Name {
 		case owlconsts.Scroll, owlconsts.Ethereum, owlconsts.Optimism, owlconsts.Base, owlconsts.Manta, owlconsts.Linea,
 			owlconsts.Bevm, owlconsts.Bevm2, owlconsts.Taiko, owlconsts.AILayer:
-			return 21000, nil
+			isContract, err := w.IsContractAddress(ctx, recipient)
+			if err != nil {
+				return 0, err
+			}
+			if !isContract {
+				return 21000, nil
+			}
 		}
 		msg = ethereum.CallMsg{
 			From:  common.HexToAddress(fromAddress),
@@ -291,6 +297,17 @@ func (w *EvmRpc) EstimateGas(fromAddress string, recipient string, tokenAddress 
 		return 0, err
 	}
 	return gasLimit, nil
+}
+
+func (w *EvmRpc) IsContractAddress(ctx context.Context, address string) (bool, error) {
+	addr := common.HexToAddress(address)
+
+	code, err := w.GetClient().CodeAt(ctx, addr, nil)
+	if err != nil {
+		return false, err
+	}
+
+	return len(code) > 0, nil
 }
 
 func (w *EvmRpc) SuggestGasPrice() (*big.Int, error) {
