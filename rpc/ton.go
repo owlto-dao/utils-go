@@ -8,6 +8,7 @@ import (
 	"github.com/owlto-dao/utils-go/loader"
 	"github.com/owlto-dao/utils-go/util"
 	"github.com/xssnick/tonutils-go/address"
+	"github.com/xssnick/tonutils-go/liteclient"
 	"github.com/xssnick/tonutils-go/ton"
 	"github.com/xssnick/tonutils-go/ton/jetton"
 )
@@ -22,8 +23,16 @@ func NewTonRpc(chainInfo *loader.ChainInfo) *TonRpc {
 	}
 }
 
-func (t *TonRpc) GetClient() *ton.APIClient {
-	return t.chainInfo.Client.(*ton.APIClient)
+func (t *TonRpc) GetClient() (*ton.APIClient, error) {
+	if t.chainInfo.Client == nil {
+		client := liteclient.NewConnectionPool()
+		err := client.AddConnectionsFromConfigUrl(context.Background(), t.chainInfo.RpcEndPoint)
+		if err != nil {
+			return nil, fmt.Errorf("error connecting to ton %v", err)
+		}
+		t.chainInfo.Client = ton.NewAPIClient(client).WithRetry()
+	}
+	return t.chainInfo.Client.(*ton.APIClient), nil
 }
 
 func (t *TonRpc) Client() interface{} {
@@ -35,7 +44,11 @@ func (t *TonRpc) Backend() int32 {
 }
 
 func (t *TonRpc) GetLatestBlockNumber(ctx context.Context) (int64, error) {
-	masterchainInfo, err := t.GetClient().CurrentMasterchainInfo(ctx)
+	client, err := t.GetClient()
+	if err != nil {
+		return 0, err
+	}
+	masterchainInfo, err := client.CurrentMasterchainInfo(ctx)
 	if err != nil {
 		return 0, err
 	}
@@ -55,12 +68,16 @@ func (t *TonRpc) GetBalance(ctx context.Context, ownerAddr string, tokenAddr str
 	if err != nil {
 		return nil, err
 	}
+	client, err := t.GetClient()
+	if err != nil {
+		return nil, err
+	}
 	if util.IsNativeAddress(tokenAddr) {
-		block, err := t.GetClient().GetMasterchainInfo(ctx)
+		block, err := client.GetMasterchainInfo(ctx)
 		if err != nil {
 			return nil, err
 		}
-		res, err := t.GetClient().GetAccount(ctx, block, addr)
+		res, err := client.GetAccount(ctx, block, addr)
 		if err != nil {
 			return nil, err
 		}
@@ -72,7 +89,7 @@ func (t *TonRpc) GetBalance(ctx context.Context, ownerAddr string, tokenAddr str
 		return nil, err
 	}
 
-	jettonClient := jetton.NewJettonMasterClient(t.GetClient(), minterAddr)
+	jettonClient := jetton.NewJettonMasterClient(client, minterAddr)
 	walletClient, err := jettonClient.GetJettonWallet(ctx, addr)
 	if err != nil {
 		return nil, err
