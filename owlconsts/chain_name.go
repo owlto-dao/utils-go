@@ -72,4 +72,5 @@ const (
 	Morph              = "MorphMainnet"
 	Lisk               = "LiskMainnet"
 	Zero               = "ZeroMainnet"
+	Avalanche          = "AvalancheMainnet"
 )
