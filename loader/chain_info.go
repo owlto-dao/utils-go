@@ -96,7 +96,7 @@ type ChainInfoManager struct {
 	alerter alert.Alerter
 	mutex   *sync.RWMutex
 
-	tonClient *liteclient.ConnectionPool
+	tonClient ton.APIClientWrapped
 }
 
 func NewChainInfoManager(db *sql.DB, alerter alert.Alerter) *ChainInfoManager {
@@ -243,8 +243,11 @@ func (mgr *ChainInfoManager) LoadAllChains() {
 						client.Stop()
 						continue
 					}
-					chain.Client = ton.NewAPIClient(client).WithRetry()
-					mgr.tonClient = client
+					apiClient := ton.NewAPIClient(client).WithRetry()
+					chain.Client = apiClient
+					mgr.tonClient = apiClient
+				} else {
+					chain.Client = mgr.tonClient
 				}
 			} else if chain.Backend == FuelBackend {
 				chain.Client = fuel.NewClient(chain.RpcEndPoint)
