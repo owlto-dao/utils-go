@@ -73,4 +73,5 @@ const (
 	Lisk               = "LiskMainnet"
 	Zero               = "ZeroMainnet"
 	Avalanche          = "AvalancheMainnet"
+	U2USolaris         = "U2USolarisMainnet"
 )
