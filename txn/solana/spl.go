@@ -1,6 +1,7 @@
 package sol
 
 import (
+	"bytes"
 	"math/big"
 	"strings"
 
@@ -87,9 +88,8 @@ func Spl2022ApproveBody(senderAddr string, tokenAddr string, spenderAddr string,
 		senderpk,
 		[]solana.PublicKey{},
 	).Build()
-
-	return ToBody([]solana.Instruction{inst}, nil)
-
+	data, err := ToBody([]solana.Instruction{inst}, nil)
+	return bytes.ReplaceAll(data, []byte("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"), []byte("TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb")), err
 }
 
 func SqlTransferBody(senderAddr string, tokenAddr string, receiverAddr string, amount *big.Int, decimals int32) ([]byte, error) {
@@ -182,7 +182,8 @@ func Sql2022TransferBody(senderAddr string, tokenAddr string, receiverAddr strin
 			senderpk,
 			[]solana.PublicKey{},
 		).Build()
-		return ToBody([]solana.Instruction{inst}, nil)
+		data, err := ToBody([]solana.Instruction{inst}, nil)
+		return bytes.ReplaceAll(data, []byte("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"), []byte("TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb")), err
 	} else {
 		inst := token.NewTransferInstruction(
 			amount.Uint64(),
@@ -191,7 +192,8 @@ func Sql2022TransferBody(senderAddr string, tokenAddr string, receiverAddr strin
 			senderpk,
 			[]solana.PublicKey{},
 		).Build()
-		return ToBody([]solana.Instruction{inst}, nil)
+		data, err := ToBody([]solana.Instruction{inst}, nil)
+		return bytes.ReplaceAll(data, []byte("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"), []byte("TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb")), err
 	}
 
 }
