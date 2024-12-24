@@ -67,6 +67,7 @@ const (
 	Fuel               = "FuelMainnet"
 	SoneiumMinatoTest  = "SoneiumMinatoTestnet"
 	InkSepolia         = "InkSepolia"
+	Ink                = "InkMainnet"
 	Ton                = "TonMainnet"
 	Duck               = "DuckChainMainnet"
 	Morph              = "MorphMainnet"
