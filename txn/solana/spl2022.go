@@ -50,8 +50,8 @@ func (spl2022 *Spl2022TransferInstruction) Data() ([]byte, error) {
 	return spl2022.splTransferInstruction.Data()
 }
 
-func NewSpl2022TransferInstruction(amount uint64, source solana.PublicKey, destination solana.PublicKey, owner solana.PublicKey) *Spl2022CreateAtaInstruction {
-	return &Spl2022CreateAtaInstruction{
-		splCreateAtaInstruction: solana_token.NewTransferInstruction(amount, source, destination, owner, []solana.PublicKey{}).Build(),
+func NewSpl2022TransferInstruction(amount uint64, source solana.PublicKey, destination solana.PublicKey, owner solana.PublicKey) *Spl2022TransferInstruction {
+	return &Spl2022TransferInstruction{
+		splTransferInstruction: solana_token.NewTransferInstruction(amount, source, destination, owner, []solana.PublicKey{}).Build(),
 	}
 }
