@@ -7,6 +7,8 @@ import (
 )
 
 type Spl2022CreateAtaInstruction struct {
+	token                   solana.PublicKey
+	recipient               solana.PublicKey
 	splCreateAtaInstruction solana.Instruction
 }
 
@@ -15,10 +17,14 @@ func (spl2022 *Spl2022CreateAtaInstruction) ProgramID() solana.PublicKey {
 }
 
 func (spl2022 *Spl2022CreateAtaInstruction) Accounts() []*solana.AccountMeta {
+	fakeAtaAccount, _, _ := solana.FindAssociatedTokenAddress(spl2022.recipient, spl2022.token)
 	accounts := spl2022.splCreateAtaInstruction.Accounts()
 	for _, account := range accounts {
 		if account.PublicKey.Equals(solana.TokenProgramID) {
 			account.PublicKey = solana.MustPublicKeyFromBase58("TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb")
+		} else if account.PublicKey.Equals(fakeAtaAccount) {
+			spl2022AtaAccount, _ := Get2022AtaFromPk(spl2022.recipient, spl2022.token)
+			account.PublicKey = spl2022AtaAccount
 		}
 	}
 	return accounts
