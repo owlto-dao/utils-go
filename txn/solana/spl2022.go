@@ -36,6 +36,8 @@ func (spl2022 *Spl2022CreateAtaInstruction) Data() ([]byte, error) {
 
 func NewSpl2022CreateAtaInstruction(payer solana.PublicKey, wallet solana.PublicKey, token solana.PublicKey) *Spl2022CreateAtaInstruction {
 	return &Spl2022CreateAtaInstruction{
+		token:                   token,
+		recipient:               wallet,
 		splCreateAtaInstruction: associatedtokenaccount.NewCreateInstruction(payer, wallet, token).Build(),
 	}
 }
