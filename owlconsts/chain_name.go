@@ -76,4 +76,5 @@ const (
 	Avalanche          = "AvalancheMainnet"
 	U2USolaris         = "U2USolarisMainnet"
 	Soneium            = "SoneiumMainnet"
+	Sonic              = "SonicMainnet"
 )
