@@ -16,6 +16,7 @@ type CircleCctpChain struct {
 	Domain             int32
 	TokenMessenger     string
 	MessageTransmitter string
+	Version            int32
 }
 
 func (ccc *CircleCctpChain) GetMinValueUnit() *big.Int {
@@ -68,7 +69,7 @@ func (mgr *CircleCctpChainManager) GetChainIds() []int32 {
 
 func (mgr *CircleCctpChainManager) LoadAllChains() {
 	// Query the database to select only id and name fields
-	rows, err := mgr.db.Query("SELECT chainid, min_value, domain, token_messenger, message_transmitter FROM t_cctp_support_chain")
+	rows, err := mgr.db.Query("SELECT chainid, min_value, domain, token_messenger, message_transmitter, version FROM t_cctp_support_chain")
 
 	if err != nil || rows == nil {
 		mgr.alerter.AlertText("select t_cctp_support_chain error", err)
@@ -83,7 +84,7 @@ func (mgr *CircleCctpChainManager) LoadAllChains() {
 	// Iterate over the result set
 	for rows.Next() {
 		var chain CircleCctpChain
-		if err := rows.Scan(&chain.ChainId, &chain.MinValue, &chain.Domain, &chain.TokenMessenger, &chain.MessageTransmitter); err != nil {
+		if err := rows.Scan(&chain.ChainId, &chain.MinValue, &chain.Domain, &chain.TokenMessenger, &chain.MessageTransmitter, &chain.Version); err != nil {
 			mgr.alerter.AlertText("scan t_cctp_support_chain row error", err)
 		} else {
 			chain.MessageTransmitter = strings.TrimSpace(chain.MessageTransmitter)
