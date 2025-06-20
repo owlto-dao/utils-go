@@ -107,10 +107,7 @@ func GetChecksumAddress64(address string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	h, err := curve.Curve.StarknetKeccak(byteSlice)
-	if err != nil {
-		return "", err
-	}
+	h := curve.StarknetKeccak(byteSlice)
 	hs := strings.TrimLeft(strings.TrimPrefix(h.String(), "0x"), "0")
 	if len(hs) > 64 {
 		return "", errors.New("hs too long")
