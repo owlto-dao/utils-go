@@ -8,6 +8,7 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/gagliardetto/solana-go/rpc"
 	"github.com/owlto-dao/utils-go/loader"
+	"github.com/owlto-dao/utils-go/util"
 	"github.com/shopspring/decimal"
 )
 
@@ -32,7 +33,7 @@ func TestSol(t *testing.T) {
 	t.Log(solRpc.GetTokenInfo(context.TODO(), "zZRRHGndBuUsbn4VM47RuagdYt57hBbskQ2Ba6K5775"))
 	t.Log(solRpc.GetTokenInfo(context.TODO(), "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"))
 	t.Log(solRpc.GetTokenInfo(context.TODO(), "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"))
-
+	t.Log(util.GetChecksumAddress64("0x000f1f5b60854d1721b287aa2f7de8cefdef643541ad4f9c0e3560d36a9c1785"))
 	suiRpc := NewSuiRpc(&loader.ChainInfo{Name: "SuiMainnet", Client: sui.NewSuiClient("https://fullnode.mainnet.sui.io:443")})
 	t.Log(suiRpc.GetTokenInfo(context.TODO(), "0xaf5c10e828852ed8f5cdcc824a80dbe11693be84284aee5dea47d6c2810b4a1::hopcat::HOPCAT"))
 }
