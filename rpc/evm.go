@@ -307,7 +307,7 @@ func (w *EvmRpc) IsContractAddress(ctx context.Context, address string) (bool, e
 		return false, err
 	}
 
-	return len(code) > 0, nil
+	return len(code) > 200, nil
 }
 
 func (w *EvmRpc) SuggestGasPrice() (*big.Int, error) {
