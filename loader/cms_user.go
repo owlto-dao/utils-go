@@ -90,7 +90,7 @@ func (mgr *CmsUserManager) LoadAllCmsUsers() {
 			return
 		} else {
 			user.Roles = []*CmsRole{}
-			mgr.allUsers = append(mgr.allUsers, &user)
+			allUsers = append(allUsers, &user)
 		}
 	}
 	if err = adminRows.Err(); err != nil {
