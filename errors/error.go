@@ -7,6 +7,8 @@ import (
 	"github.com/owlto-dao/utils-go/log"
 )
 
+var UnauthorizedErr = NewBizError(1004, "unauthorized")
+
 type BizError struct {
 	Code int64                  `json:"code"`
 	Msg  string                 `json:"msg"`
