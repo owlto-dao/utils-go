@@ -10,16 +10,20 @@ import (
 
 // alerter := alert.NewLarkAlerter("https://open.larksuite.com/open-apis/bot/v2/hook/xxxx")
 
+var LarkAlertBot *LarkAlerter
+
 type LarkAlerter struct {
 	*CommonAlerter
 	webhook string
 }
 
 func NewLarkAlerter(webhook string) *LarkAlerter {
-	return &LarkAlerter{
+	alerter := &LarkAlerter{
 		webhook:       strings.TrimSpace(webhook),
 		CommonAlerter: NewCommonAlerter(120, 900),
 	}
+	LarkAlertBot = alerter
+	return alerter
 }
 
 func (la *LarkAlerter) AlertTextLazyGroup(group string, msg string, err error) {
