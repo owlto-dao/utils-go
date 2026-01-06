@@ -2,10 +2,10 @@ package alert
 
 import (
 	"fmt"
+	logger "github.com/owlto-dao/utils-go/log"
+	"github.com/owlto-dao/utils-go/network"
 	"log"
 	"strings"
-
-	"github.com/owlto-dao/utils-go/network"
 )
 
 // alerter := alert.NewLarkAlerter("https://open.larksuite.com/open-apis/bot/v2/hook/xxxx")
@@ -39,4 +39,15 @@ func (la *LarkAlerter) AlertText(msg string, err error) {
 	}
 	network.Request(la.webhook, data, nil)
 	log.Println(msg, ":", err)
+}
+
+func (la *LarkAlerter) AlertMessage(msg string) {
+	data := map[string]interface{}{
+		"msg_type": "text",
+		"content": map[string]interface{}{
+			"text": msg,
+		},
+	}
+	network.Request(la.webhook, data, nil)
+	logger.Infof(msg)
 }
