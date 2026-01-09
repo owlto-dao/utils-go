@@ -3,12 +3,13 @@ package domain
 type ReferralType string
 
 const (
-	Normal ReferralType = "NORMAL"
-	Kol    ReferralType = "KOL"
+	Regular   ReferralType = "REGULAR"
+	Kol       ReferralType = "KOL"
+	Affiliate ReferralType = "AFFILIATE"
 )
 
 func IsValidReferralType(referralType string) bool {
-	return string(Normal) == referralType || string(Kol) == referralType
+	return string(Regular) == referralType || string(Kol) == referralType || string(Affiliate) == referralType
 }
 
 type CommissionRuleItem struct {
