@@ -15,7 +15,7 @@ func IsValidReferralType(referralType string) bool {
 type CommissionRuleItem struct {
 	MinTransactions int32  `json:"min_transactions"`
 	MaxTransactions *int32 `json:"max_transactions"`
-	CommissionRatio string `json:"commission_ratio"`
+	RatioBps        int32  `json:"ratio_bps"`
 }
 
 type CommissionRule struct {
