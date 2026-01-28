@@ -53,6 +53,17 @@ func (mgr *CmsUserManager) HasRole(userAddress string, roleName string) bool {
 	return false
 }
 
+func (mgr *CmsUserManager) GetAddressName(address string) string {
+	mgr.mutex.RLock()
+	defer mgr.mutex.RUnlock()
+	for _, user := range mgr.allUsers {
+		if strings.EqualFold(user.Address, address) {
+			return user.Name
+		}
+	}
+	return ""
+}
+
 func (mgr *CmsUserManager) GetAllCmsUsers() []*CmsUser {
 	mgr.mutex.RLock()
 	defer mgr.mutex.RUnlock()
