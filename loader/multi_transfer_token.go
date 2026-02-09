@@ -44,7 +44,7 @@ func NewMultiTransferTokenManager(db *sql.DB, alerter alert.Alerter) *MultiTrans
 }
 
 func (mgr *MultiTransferTokenManager) LoadAllTokens() {
-	rows, err := mgr.db.Query("SELECT id, chain_name, token_name, token_address, decimal, max_value, dtc, disabled, created_at, updated_at FROM t_multi_transfer_token")
+	rows, err := mgr.db.Query("SELECT id, chain_name, token_name, token_address, decimals, max_value, dtc, disabled, created_at, updated_at FROM t_multi_transfer_token")
 	if err != nil {
 		mgr.alerter.AlertText("select t_multi_transfer_token error", err)
 		return
