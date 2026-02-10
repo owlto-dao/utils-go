@@ -11,7 +11,7 @@ import (
 
 type MultiTransferChain struct {
 	Id        int64
-	ChainId   string
+	ChainId   int32
 	ChainName string
 	Disabled  int8
 	CreatedAt time.Time
@@ -20,7 +20,7 @@ type MultiTransferChain struct {
 
 type MultiTransferChainManager struct {
 	idChains      map[int64]*MultiTransferChain
-	chainIdChains map[string]*MultiTransferChain
+	chainIdChains map[int32]*MultiTransferChain
 	allChains     []*MultiTransferChain
 
 	db      *sql.DB
@@ -31,7 +31,7 @@ type MultiTransferChainManager struct {
 func NewMultiTransferChainManager(db *sql.DB, alerter alert.Alerter) *MultiTransferChainManager {
 	return &MultiTransferChainManager{
 		idChains:      make(map[int64]*MultiTransferChain),
-		chainIdChains: make(map[string]*MultiTransferChain),
+		chainIdChains: make(map[int32]*MultiTransferChain),
 		allChains:     make([]*MultiTransferChain, 0),
 		db:            db,
 		alerter:       alerter,
@@ -48,7 +48,7 @@ func (mgr *MultiTransferChainManager) LoadAllChains() {
 	defer rows.Close()
 
 	idChains := make(map[int64]*MultiTransferChain)
-	chainIdChains := make(map[string]*MultiTransferChain)
+	chainIdChains := make(map[int32]*MultiTransferChain)
 	allChains := make([]*MultiTransferChain, 0)
 
 	for rows.Next() {
@@ -58,11 +58,10 @@ func (mgr *MultiTransferChainManager) LoadAllChains() {
 			continue
 		}
 
-		chain.ChainId = strings.TrimSpace(chain.ChainId)
 		chain.ChainName = strings.TrimSpace(chain.ChainName)
 
 		idChains[chain.Id] = &chain
-		chainIdChains[strings.ToLower(chain.ChainId)] = &chain
+		chainIdChains[chain.ChainId] = &chain
 		allChains = append(allChains, &chain)
 	}
 
@@ -85,10 +84,10 @@ func (mgr *MultiTransferChainManager) GetChainById(id int64) (*MultiTransferChai
 	return chain, ok
 }
 
-func (mgr *MultiTransferChainManager) GetChainByChainId(chainId string) (*MultiTransferChain, bool) {
+func (mgr *MultiTransferChainManager) GetChainByChainId(chainId int32) (*MultiTransferChain, bool) {
 	mgr.mutex.RLock()
 	defer mgr.mutex.RUnlock()
-	chain, ok := mgr.chainIdChains[strings.ToLower(strings.TrimSpace(chainId))]
+	chain, ok := mgr.chainIdChains[chainId]
 	return chain, ok
 }
 
