@@ -13,6 +13,7 @@ type MultiTransferChain struct {
 	Id        int64
 	ChainId   int32
 	ChainName string
+	Backend   int
 	Disabled  int8
 	CreatedAt time.Time
 	UpdatedAt time.Time
@@ -40,7 +41,7 @@ func NewMultiTransferChainManager(db *sql.DB, alerter alert.Alerter) *MultiTrans
 }
 
 func (mgr *MultiTransferChainManager) LoadAllChains() {
-	rows, err := mgr.db.Query("SELECT id, chain_id, chain_name, disabled, created_at, updated_at FROM t_multi_transfer_chain")
+	rows, err := mgr.db.Query("SELECT id, chain_id, chain_name, backend, disabled, created_at, updated_at FROM t_multi_transfer_chain")
 	if err != nil {
 		mgr.alerter.AlertText("select t_multi_transfer_chain error", err)
 		return
@@ -53,7 +54,7 @@ func (mgr *MultiTransferChainManager) LoadAllChains() {
 
 	for rows.Next() {
 		var chain MultiTransferChain
-		if err := rows.Scan(&chain.Id, &chain.ChainId, &chain.ChainName, &chain.Disabled, &chain.CreatedAt, &chain.UpdatedAt); err != nil {
+		if err := rows.Scan(&chain.Id, &chain.ChainId, &chain.ChainName, &chain.Backend, &chain.Disabled, &chain.CreatedAt, &chain.UpdatedAt); err != nil {
 			mgr.alerter.AlertText("scan t_multi_transfer_chain row error", err)
 			continue
 		}
