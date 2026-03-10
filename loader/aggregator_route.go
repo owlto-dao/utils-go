@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"math/big"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -107,6 +108,12 @@ type RouteQueryResult struct {
 	Route       *RouteConfig
 	FeeSegments []*FeeSegment
 	IsAvailable bool
+}
+
+// SupportedChain 支持的链信息
+type SupportedChain struct {
+	ChainID   int64
+	ChainName string
 }
 
 // BestRouteResult 最优路由选择结果
@@ -381,6 +388,47 @@ func (mgr *AggregatorManager) GetAggregateChainConfigByChainName(aggregateID Agg
 		return chainMap[strings.ToLower(strings.TrimSpace(chainName))]
 	}
 	return nil
+}
+
+// GetAllRoutes 返回所有可用路由
+func (mgr *AggregatorManager) GetAllRoutes() []*RouteConfig {
+	mgr.mutex.RLock()
+	defer mgr.mutex.RUnlock()
+
+	routes := make([]*RouteConfig, 0, len(mgr.routesByID))
+	for _, route := range mgr.routesByID {
+		routes = append(routes, route)
+	}
+	return routes
+}
+
+// GetAllSupportedChains 返回所有支持的链（按 chainID 去重）
+func (mgr *AggregatorManager) GetAllSupportedChains() []SupportedChain {
+	mgr.mutex.RLock()
+	defer mgr.mutex.RUnlock()
+
+	chainByID := make(map[int64]SupportedChain)
+	for _, chainMap := range mgr.chainConfigs {
+		for chainID, cfg := range chainMap {
+			if _, exists := chainByID[chainID]; exists {
+				continue
+			}
+			chainByID[chainID] = SupportedChain{
+				ChainID:   chainID,
+				ChainName: cfg.ChainName,
+			}
+		}
+	}
+
+	chains := make([]SupportedChain, 0, len(chainByID))
+	for _, chain := range chainByID {
+		chains = append(chains, chain)
+	}
+
+	sort.Slice(chains, func(i, j int) bool {
+		return chains[i].ChainID < chains[j].ChainID
+	})
+	return chains
 }
 
 // GetRoutesByChainPair 根据链对查询所有可用路由
