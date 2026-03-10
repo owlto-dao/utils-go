@@ -43,6 +43,20 @@ type AggregatorConfig struct {
 	APIBaseURL string
 }
 
+// AggregateChainConfig 聚合器链路配置（对应 t_aggregate_chain_config）
+type AggregateChainConfig struct {
+	ID                     int64
+	AggregateID            AggregatorID
+	ChainName              string
+	ChainID                int64
+	DepositContractAddress string
+	BridgeFeeRateBps       int
+	FillDeadlineSeconds    int
+	SwapperAddress         string
+	IsEnabled              bool
+	Priority               int
+}
+
 // RouteConfig 路由配置（对应 t_aggregator_route_config）
 type RouteConfig struct {
 	ID               int64
@@ -107,7 +121,9 @@ type BestRouteResult struct {
 // AggregatorManager 聚合器统一管理器
 type AggregatorManager struct {
 	// 聚合器配置
-	aggregatorConfigs map[AggregatorID]*AggregatorConfig
+	aggregatorConfigs  map[AggregatorID]*AggregatorConfig
+	chainConfigs       map[AggregatorID]map[int64]*AggregateChainConfig  // aggregateID -> chainID -> config
+	chainConfigsByName map[AggregatorID]map[string]*AggregateChainConfig // aggregateID -> chainName(lower) -> config
 
 	// 路由索引（多维）
 	routesByChainPair map[int64]map[int64][]*RouteConfig // fromChainID -> toChainID -> routes
@@ -130,6 +146,8 @@ type AggregatorManager struct {
 func NewAggregatorManager(db *sql.DB, alerter alert.Alerter) *AggregatorManager {
 	return &AggregatorManager{
 		aggregatorConfigs:    make(map[AggregatorID]*AggregatorConfig),
+		chainConfigs:         make(map[AggregatorID]map[int64]*AggregateChainConfig),
+		chainConfigsByName:   make(map[AggregatorID]map[string]*AggregateChainConfig),
 		routesByChainPair:    make(map[int64]map[int64][]*RouteConfig),
 		routesBySymbol:       make(map[string][]*RouteConfig),
 		routesByID:           make(map[int64]*RouteConfig),
@@ -145,6 +163,9 @@ func NewAggregatorManager(db *sql.DB, alerter alert.Alerter) *AggregatorManager 
 func (mgr *AggregatorManager) LoadAll() error {
 	if err := mgr.loadAggregatorConfigs(); err != nil {
 		return fmt.Errorf("load aggregator configs: %w", err)
+	}
+	if err := mgr.loadAggregateChainConfigs(); err != nil {
+		return fmt.Errorf("load aggregate chain configs: %w", err)
 	}
 	if err := mgr.loadRouteConfigs(); err != nil {
 		return fmt.Errorf("load route configs: %w", err)
@@ -181,6 +202,73 @@ func (mgr *AggregatorManager) loadAggregatorConfigs() error {
 
 	mgr.mutex.Lock()
 	mgr.aggregatorConfigs = newConfigs
+	mgr.mutex.Unlock()
+	return nil
+}
+
+// loadAggregateChainConfigs 从 t_aggregate_chain_config 加载聚合器链路配置
+func (mgr *AggregatorManager) loadAggregateChainConfigs() error {
+	rows, err := mgr.db.Query(`
+        SELECT id, aggregate_id, chain_name, chain_id, deposit_contract_address,
+               bridge_fee_rate_bps, fill_deadline_seconds, swapper_address,
+               is_enabled, priority
+        FROM t_aggregate_chain_config
+        WHERE is_enabled = 1
+    `)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	newByAggID := make(map[AggregatorID]map[int64]*AggregateChainConfig)
+	newByAggName := make(map[AggregatorID]map[string]*AggregateChainConfig)
+
+	for rows.Next() {
+		var cfg AggregateChainConfig
+		var aggID int
+		var depositContractAddress sql.NullString
+		var bridgeFeeRateBps sql.NullInt64
+		var fillDeadlineSeconds sql.NullInt64
+		var swapperAddress sql.NullString
+
+		if err := rows.Scan(
+			&cfg.ID, &aggID, &cfg.ChainName, &cfg.ChainID, &depositContractAddress,
+			&bridgeFeeRateBps, &fillDeadlineSeconds, &swapperAddress,
+			&cfg.IsEnabled, &cfg.Priority,
+		); err != nil {
+			mgr.alerter.AlertText("scan aggregate chain config error", err)
+			continue
+		}
+
+		cfg.AggregateID = AggregatorID(aggID)
+		if depositContractAddress.Valid {
+			cfg.DepositContractAddress = depositContractAddress.String
+		}
+		if bridgeFeeRateBps.Valid {
+			cfg.BridgeFeeRateBps = int(bridgeFeeRateBps.Int64)
+		}
+		if fillDeadlineSeconds.Valid {
+			cfg.FillDeadlineSeconds = int(fillDeadlineSeconds.Int64)
+		}
+		if swapperAddress.Valid {
+			cfg.SwapperAddress = swapperAddress.String
+		}
+
+		if _, ok := newByAggID[cfg.AggregateID]; !ok {
+			newByAggID[cfg.AggregateID] = make(map[int64]*AggregateChainConfig)
+		}
+		newByAggID[cfg.AggregateID][cfg.ChainID] = &cfg
+
+		if _, ok := newByAggName[cfg.AggregateID]; !ok {
+			newByAggName[cfg.AggregateID] = make(map[string]*AggregateChainConfig)
+		}
+		chainNameKey := strings.ToLower(strings.TrimSpace(cfg.ChainName))
+		newByAggName[cfg.AggregateID][chainNameKey] = &cfg
+	}
+
+	mgr.mutex.Lock()
+	mgr.chainConfigs = newByAggID
+	mgr.chainConfigsByName = newByAggName
 	mgr.mutex.Unlock()
 	return nil
 }
@@ -270,6 +358,28 @@ func (mgr *AggregatorManager) loadFeeSegments() error {
 	mgr.mutex.Lock()
 	mgr.feeSegmentsByRouteID = newByRouteID
 	mgr.mutex.Unlock()
+	return nil
+}
+
+// GetAggregateChainConfigByChainID 根据 aggregateID + chainID 查询链路配置
+func (mgr *AggregatorManager) GetAggregateChainConfigByChainID(aggregateID AggregatorID, chainID int64) *AggregateChainConfig {
+	mgr.mutex.RLock()
+	defer mgr.mutex.RUnlock()
+
+	if chainMap, ok := mgr.chainConfigs[aggregateID]; ok {
+		return chainMap[chainID]
+	}
+	return nil
+}
+
+// GetAggregateChainConfigByChainName 根据 aggregateID + chainName 查询链路配置
+func (mgr *AggregatorManager) GetAggregateChainConfigByChainName(aggregateID AggregatorID, chainName string) *AggregateChainConfig {
+	mgr.mutex.RLock()
+	defer mgr.mutex.RUnlock()
+
+	if chainMap, ok := mgr.chainConfigsByName[aggregateID]; ok {
+		return chainMap[strings.ToLower(strings.TrimSpace(chainName))]
+	}
 	return nil
 }
 
