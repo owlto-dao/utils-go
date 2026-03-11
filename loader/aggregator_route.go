@@ -80,12 +80,12 @@ type RouteConfig struct {
 // FeeSegment 分段收费配置（对应 t_aggregator_route_fee_segment）
 type FeeSegment struct {
 	ID                 int64
-	RouteID            AggregatorID // 关联 RouteConfig.ID
-	MinAmountUI        string       // UI 金额下限
-	MaxAmountUI        string       // UI 金额上限，"0" 表示无上限
-	OwltoFeeFixedUI    string       // Owlto 固定加收（UI 金额）
-	OwltoFeeRateBps    int          // Owlto 百分比加收（基点，10=0.1%）
-	ProtocolFeeRateBps int          // 协议官方费率（基点）
+	RouteID            int64  // 关联 RouteConfig.ID
+	MinAmountUI        string // UI 金额下限
+	MaxAmountUI        string // UI 金额上限，"0" 表示无上限
+	OwltoFeeFixedUI    string // Owlto 固定加收（UI 金额）
+	OwltoFeeRateBps    int    // Owlto 百分比加收（基点，10=0.1%）
+	ProtocolFeeRateBps int    // 协议官方费率（基点）
 	IsEnabled          bool
 	Priority           int
 }
@@ -138,7 +138,7 @@ type AggregatorManager struct {
 	routesByID        map[int64]*RouteConfig             // routeID -> route
 
 	// 分段收费索引
-	feeSegmentsByRouteID map[AggregatorID][]*FeeSegment // routeID -> segments (已按 minAmount 排序)
+	feeSegmentsByRouteID map[int64][]*FeeSegment // routeID -> segments (已按 minAmount 排序)
 
 	// 基础设施
 	db      *sql.DB
@@ -158,7 +158,7 @@ func NewAggregatorManager(db *sql.DB, alerter alert.Alerter) *AggregatorManager 
 		routesByChainPair:    make(map[int64]map[int64][]*RouteConfig),
 		routesBySymbol:       make(map[string][]*RouteConfig),
 		routesByID:           make(map[int64]*RouteConfig),
-		feeSegmentsByRouteID: make(map[AggregatorID][]*FeeSegment),
+		feeSegmentsByRouteID: make(map[int64][]*FeeSegment),
 		db:                   db,
 		alerter:              alerter,
 		mutex:                new(sync.RWMutex),
@@ -348,7 +348,7 @@ func (mgr *AggregatorManager) loadFeeSegments() error {
 	}
 	defer rows.Close()
 
-	newByRouteID := make(map[AggregatorID][]*FeeSegment)
+	newByRouteID := make(map[int64][]*FeeSegment)
 	for rows.Next() {
 		var seg FeeSegment
 		if err := rows.Scan(
@@ -465,7 +465,7 @@ func (mgr *AggregatorManager) GetRoutesByChainPairAndSymbol(
 }
 
 // GetFeeSegments 获取路由的分段收费配置
-func (mgr *AggregatorManager) GetFeeSegments(routeID AggregatorID) []*FeeSegment {
+func (mgr *AggregatorManager) GetFeeSegments(routeID int64) []*FeeSegment {
 	mgr.mutex.RLock()
 	defer mgr.mutex.RUnlock()
 	return mgr.feeSegmentsByRouteID[routeID]
@@ -505,7 +505,7 @@ func (mgr *AggregatorManager) FindBestRoute(
 		}
 
 		// 查找该路由下匹配金额的 FeeSegment
-		segment := mgr.findMatchingSegment(route.AggregateID, amtRat)
+		segment := mgr.findMatchingSegment(route.ID, amtRat)
 		if segment == nil {
 			continue // 无匹配的分段配置
 		}
@@ -515,13 +515,14 @@ func (mgr *AggregatorManager) FindBestRoute(
 		if feeResult == nil {
 			continue
 		}
+		feeResult.BestAggregator = route.AggregateID
 
 		// 比较找出最低费用
 		feeRat := new(big.Rat).SetInt(feeResult.TotalGasFee)
 		if lowestFee == nil || feeRat.Cmp(lowestFee) < 0 {
 			lowestFee = feeRat
 			bestResult = &BestRouteResult{
-				Aggregator:   segment.RouteID,
+				Aggregator:   route.AggregateID,
 				Route:        route,
 				FeeSegment:   segment,
 				FeeResult:    feeResult,
@@ -565,7 +566,7 @@ func (mgr *AggregatorManager) isAmountInRouteRange(amtRat *big.Rat, route *Route
 }
 
 // findMatchingSegment 在分段列表中找到匹配金额的 segment
-func (mgr *AggregatorManager) findMatchingSegment(routeID AggregatorID, amtRat *big.Rat) *FeeSegment {
+func (mgr *AggregatorManager) findMatchingSegment(routeID int64, amtRat *big.Rat) *FeeSegment {
 	segments := mgr.GetFeeSegments(routeID)
 	if segments == nil {
 		return nil
@@ -606,7 +607,7 @@ func (mgr *AggregatorManager) findMatchingSegment(routeID AggregatorID, amtRat *
 // decimals: Token 精度
 func (mgr *AggregatorManager) calculateFee(amtRat *big.Rat, seg *FeeSegment, decimals int32) *FeeResult {
 	result := &FeeResult{
-		BestAggregator:     seg.RouteID,
+		BestAggregator:     AggregatorNone, // 由调用者设置
 		ProtocolFeeRateBps: seg.ProtocolFeeRateBps,
 	}
 
