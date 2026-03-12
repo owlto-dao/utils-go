@@ -445,6 +445,7 @@ func (mgr *AggregatorManager) GetRoutesByChainPair(fromChainID, toChainID int64)
 }
 
 // GetRoutesByChainPairAndSymbol 根据链对+Token符号查询路由
+// 注意：Across 聚合器只有 WETH 路由，所以查询 ETH 时也会匹配 WETH 路由
 func (mgr *AggregatorManager) GetRoutesByChainPairAndSymbol(
 	fromChainID, toChainID int64,
 	tokenSymbol string,
@@ -457,11 +458,33 @@ func (mgr *AggregatorManager) GetRoutesByChainPairAndSymbol(
 	sym := strings.ToLower(strings.TrimSpace(tokenSymbol))
 	var result []*RouteConfig
 	for _, r := range routes {
-		if strings.ToLower(r.FromTokenSymbol) == sym || strings.ToLower(r.ToTokenSymbol) == sym {
+		if mgr.tokenSymbolMatches(r.AggregateID, sym, r.FromTokenSymbol) ||
+			mgr.tokenSymbolMatches(r.AggregateID, sym, r.ToTokenSymbol) {
 			result = append(result, r)
 		}
 	}
 	return result
+}
+
+// tokenSymbolMatches 检查查询的 tokenSymbol 是否匹配路由中的 tokenSymbol
+// 对于 Across 聚合器，ETH 和 WETH 视为等价（因为 Across 只有 WETH 路由）
+func (mgr *AggregatorManager) tokenSymbolMatches(aggID AggregatorID, querySym, routeSym string) bool {
+	routeSymLower := strings.ToLower(routeSym)
+
+	// 直接匹配
+	if routeSymLower == querySym {
+		return true
+	}
+
+	// Across 特殊处理：ETH <-> WETH 等价
+	if aggID == AggregatorAcross {
+		if (querySym == "eth" && routeSymLower == "weth") ||
+			(querySym == "weth" && routeSymLower == "eth") {
+			return true
+		}
+	}
+
+	return false
 }
 
 // GetFeeSegments 获取路由的分段收费配置
