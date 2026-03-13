@@ -14,13 +14,13 @@ func ExtractValueFromJSON(jsonData string, path string) (interface{}, error) {
 		return nil, err
 	}
 
-	// 分割路径 "estimation.costsDetails[0].chain" -> ["estimation", "costsDetails[0]", "chain"]
+	// Split the path "estimation.costsDetails[0].chain" -> ["estimation", "costsDetails[0]", "chain"].
 	pathParts := strings.Split(path, ".")
 
 	current := data
 	for _, part := range pathParts {
 		if strings.Contains(part, "[") {
-			// 处理数组部分
+			// Handle the array segment.
 			re := regexp.MustCompile(`(\w+)\[(\d+)\]`)
 			matches := re.FindStringSubmatch(part)
 			if len(matches) != 3 {
@@ -30,10 +30,10 @@ func ExtractValueFromJSON(jsonData string, path string) (interface{}, error) {
 			key := matches[1]
 			index, _ := strconv.Atoi(matches[2])
 
-			// 转到指定的key
+			// Move to the specified key.
 			if mapped, ok := current.(map[string]interface{}); ok {
 				if value, found := mapped[key]; found {
-					// 转到数组的指定索引
+					// Move to the specified array index.
 					if sliced, ok := value.([]interface{}); ok {
 						if index < len(sliced) {
 							current = sliced[index]

@@ -12,7 +12,7 @@ import (
 	"github.com/owlto-dao/utils-go/alert"
 )
 
-// AggregatorID 聚合器标识
+// AggregatorID identifies an aggregator.
 type AggregatorID int
 
 const (
@@ -35,7 +35,7 @@ func (a AggregatorID) String() string {
 	}
 }
 
-// AggregatorConfig 聚合器基础配置（对应 t_aggregate_config）
+// AggregatorConfig stores base aggregator settings from t_aggregate_config.
 type AggregatorConfig struct {
 	ID         AggregatorID
 	Name       string
@@ -44,7 +44,7 @@ type AggregatorConfig struct {
 	APIBaseURL string
 }
 
-// AggregateChainConfig 聚合器链路配置（对应 t_aggregate_chain_config）
+// AggregateChainConfig stores per-chain aggregator settings from t_aggregate_chain_config.
 type AggregateChainConfig struct {
 	ID                     int64
 	AggregateID            AggregatorID
@@ -58,7 +58,7 @@ type AggregateChainConfig struct {
 	Priority               int
 }
 
-// RouteConfig 路由配置（对应 t_aggregator_route_config）
+// RouteConfig stores route settings from t_aggregator_route_config.
 type RouteConfig struct {
 	ID               int64
 	AggregateID      AggregatorID
@@ -71,81 +71,81 @@ type RouteConfig struct {
 	ToTokenAddress   string
 	ToTokenSymbol    string
 	IsNative         bool
-	MinAmount        string // UI 金额
-	MaxAmount        string // UI 金额，"0" 表示无上限
+	MinAmount        string // UI amount
+	MaxAmount        string // UI amount, "0" means no upper limit
 	IsEnabled        bool
 	Priority         int
 }
 
-// FeeSegment 分段收费配置（对应 t_aggregator_route_fee_segment）
+// FeeSegment stores tiered fee settings from t_aggregator_route_fee_segment.
 type FeeSegment struct {
 	ID                 int64
-	RouteID            int64  // 关联 RouteConfig.ID
-	MinAmountUI        string // UI 金额下限
-	MaxAmountUI        string // UI 金额上限，"0" 表示无上限
-	OwltoFeeFixedUI    string // Owlto 固定加收（UI 金额）
-	OwltoFeeRateBps    int    // Owlto 百分比加收（基点，10=0.1%）
-	ProtocolFeeRateBps int    // 协议官方费率（基点）
+	RouteID            int64  // References RouteConfig.ID
+	MinAmountUI        string // Lower bound in UI amount
+	MaxAmountUI        string // Upper bound in UI amount, "0" means no upper limit
+	OwltoFeeFixedUI    string // Fixed Owlto surcharge in UI amount
+	OwltoFeeRateBps    int    // Owlto percentage surcharge in basis points, 10 = 0.1%
+	ProtocolFeeRateBps int    // Protocol fee rate in basis points
 	IsEnabled          bool
 	Priority           int
 }
 
-// FeeResult 费用计算结果
+// FeeResult stores the computed fee result.
 type FeeResult struct {
-	BestAggregator     AggregatorID // 最优聚合器
-	ChannelFee         *big.Int     // 协议费用（最小单位）
-	OwltoFee           *big.Int     // Owlto 加收费用（最小单位）
-	TotalGasFee        *big.Int     // 总 Gas Fee = ChannelFee + OwltoFee
-	ProtocolFee        *big.Int     // 协议官方费率（如 Across 0.1%）
-	ChannelFeeUI       string       // 协议费用（UI 金额）
-	OwltoFeeUI         string       // Owlto 加收费用（UI 金额）
-	TotalGasFeeUI      string       // 总费用（UI 金额）
-	ProtocolFeeRateBps int          // 协议费率（基点）
+	BestAggregator     AggregatorID // Best aggregator
+	ChannelFee         *big.Int     // Protocol fee in smallest unit
+	OwltoFee           *big.Int     // Owlto surcharge in smallest unit
+	TotalGasFee        *big.Int     // Total gas fee = ChannelFee + OwltoFee
+	ProtocolFee        *big.Int     // Protocol fee amount, for example Across 0.1%
+	ChannelFeeUI       string       // Protocol fee in UI amount
+	OwltoFeeUI         string       // Owlto surcharge in UI amount
+	TotalGasFeeUI      string       // Total fee in UI amount
+	ProtocolFeeRateBps int          // Protocol fee rate in basis points
 }
 
-// RouteQueryResult 路由查询结果
+// RouteQueryResult stores the route query result.
 type RouteQueryResult struct {
 	Route       *RouteConfig
 	FeeSegments []*FeeSegment
 	IsAvailable bool
 }
 
-// SupportedChain 支持的链信息
+// SupportedChain stores chain information supported by aggregators.
 type SupportedChain struct {
 	ChainID   int64
 	ChainName string
 }
 
-// BestRouteResult 最优路由选择结果
+// BestRouteResult stores the best route selection result.
 type BestRouteResult struct {
 	Aggregator   AggregatorID
 	Route        *RouteConfig
 	FeeSegment   *FeeSegment
 	FeeResult    *FeeResult
-	IsAggregator bool // 是否走聚合器（非 Owlto Native）
+	IsAggregator bool // Whether the route uses an aggregator instead of Owlto Native
 }
 
-// AggregatorManager 聚合器统一管理器
+// AggregatorManager manages all aggregator-related configs in memory.
 type AggregatorManager struct {
-	// 聚合器配置
+	// Aggregator configs
 	aggregatorConfigs  map[AggregatorID]*AggregatorConfig
 	chainConfigs       map[AggregatorID]map[int64]*AggregateChainConfig  // aggregateID -> chainID -> config
 	chainConfigsByName map[AggregatorID]map[string]*AggregateChainConfig // aggregateID -> chainName(lower) -> config
 
-	// 路由索引（多维）
+	// Multi-dimensional route indexes
 	routesByChainPair map[int64]map[int64][]*RouteConfig // fromChainID -> toChainID -> routes
 	routesBySymbol    map[string][]*RouteConfig          // tokenSymbol(lower) -> routes
 	routesByID        map[int64]*RouteConfig             // routeID -> route
 
-	// 分段收费索引
-	feeSegmentsByRouteID map[int64][]*FeeSegment // routeID -> segments (已按 minAmount 排序)
+	// Tiered fee indexes
+	feeSegmentsByRouteID map[int64][]*FeeSegment // routeID -> segments, sorted by minAmount
 
-	// 基础设施
+	// Infrastructure
 	db      *sql.DB
 	alerter alert.Alerter
 	mutex   *sync.RWMutex
 
-	// 定时刷新
+	// Periodic refresh
 	refreshInterval time.Duration
 	stopCh          chan struct{}
 }
@@ -166,7 +166,7 @@ func NewAggregatorManager(db *sql.DB, alerter alert.Alerter) *AggregatorManager 
 	}
 }
 
-// LoadAll 加载所有配置到内存
+// LoadAll loads all configs into memory.
 func (mgr *AggregatorManager) LoadAll() error {
 	if err := mgr.loadAggregatorConfigs(); err != nil {
 		return fmt.Errorf("load aggregator configs: %w", err)
@@ -183,7 +183,7 @@ func (mgr *AggregatorManager) LoadAll() error {
 	return nil
 }
 
-// loadAggregatorConfigs 从 t_aggregate_config 加载聚合器配置
+// loadAggregatorConfigs loads aggregator configs from t_aggregate_config.
 func (mgr *AggregatorManager) loadAggregatorConfigs() error {
 	rows, err := mgr.db.Query(`
         SELECT id, name, is_enabled, priority, api_base_url
@@ -213,7 +213,7 @@ func (mgr *AggregatorManager) loadAggregatorConfigs() error {
 	return nil
 }
 
-// loadAggregateChainConfigs 从 t_aggregate_chain_config 加载聚合器链路配置
+// loadAggregateChainConfigs loads aggregator chain configs from t_aggregate_chain_config.
 func (mgr *AggregatorManager) loadAggregateChainConfigs() error {
 	rows, err := mgr.db.Query(`
         SELECT id, aggregate_id, chain_name, chain_id, deposit_contract_address,
@@ -280,7 +280,7 @@ func (mgr *AggregatorManager) loadAggregateChainConfigs() error {
 	return nil
 }
 
-// loadRouteConfigs 从 t_aggregator_route_config 加载路由
+// loadRouteConfigs loads routes from t_aggregator_route_config.
 func (mgr *AggregatorManager) loadRouteConfigs() error {
 	rows, err := mgr.db.Query(`
         SELECT id, aggregate_id, from_chain_id, from_chain_name, from_token_address, from_token_symbol,
@@ -311,17 +311,17 @@ func (mgr *AggregatorManager) loadRouteConfigs() error {
 		}
 		r.AggregateID = AggregatorID(aggID)
 
-		// 索引：chainPair
+		// Index by chain pair.
 		if _, ok := newByChainPair[r.FromChainID]; !ok {
 			newByChainPair[r.FromChainID] = make(map[int64][]*RouteConfig)
 		}
 		newByChainPair[r.FromChainID][r.ToChainID] = append(newByChainPair[r.FromChainID][r.ToChainID], &r)
 
-		// 索引：symbol
+		// Index by token symbol.
 		sym := strings.ToLower(r.FromTokenSymbol)
 		newBySymbol[sym] = append(newBySymbol[sym], &r)
 
-		// 索引：ID
+		// Index by route ID.
 		newByID[r.ID] = &r
 	}
 
@@ -333,7 +333,7 @@ func (mgr *AggregatorManager) loadRouteConfigs() error {
 	return nil
 }
 
-// loadFeeSegments 从 t_aggregator_route_fee_segment 加载分段收费
+// loadFeeSegments loads fee segments from t_aggregator_route_fee_segment.
 func (mgr *AggregatorManager) loadFeeSegments() error {
 	rows, err := mgr.db.Query(`
         SELECT id, route_id, min_amount_ui, max_amount_ui,
@@ -368,7 +368,7 @@ func (mgr *AggregatorManager) loadFeeSegments() error {
 	return nil
 }
 
-// GetAggregateChainConfigByChainID 根据 aggregateID + chainID 查询链路配置
+// GetAggregateChainConfigByChainID returns the chain config by aggregateID and chainID.
 func (mgr *AggregatorManager) GetAggregateChainConfigByChainID(aggregateID AggregatorID, chainID int64) *AggregateChainConfig {
 	mgr.mutex.RLock()
 	defer mgr.mutex.RUnlock()
@@ -379,7 +379,7 @@ func (mgr *AggregatorManager) GetAggregateChainConfigByChainID(aggregateID Aggre
 	return nil
 }
 
-// GetAggregateChainConfigByChainName 根据 aggregateID + chainName 查询链路配置
+// GetAggregateChainConfigByChainName returns the chain config by aggregateID and chain name.
 func (mgr *AggregatorManager) GetAggregateChainConfigByChainName(aggregateID AggregatorID, chainName string) *AggregateChainConfig {
 	mgr.mutex.RLock()
 	defer mgr.mutex.RUnlock()
@@ -390,7 +390,7 @@ func (mgr *AggregatorManager) GetAggregateChainConfigByChainName(aggregateID Agg
 	return nil
 }
 
-// GetAllRoutes 返回所有可用路由
+// GetAllRoutes returns all available routes.
 func (mgr *AggregatorManager) GetAllRoutes() []*RouteConfig {
 	mgr.mutex.RLock()
 	defer mgr.mutex.RUnlock()
@@ -402,7 +402,7 @@ func (mgr *AggregatorManager) GetAllRoutes() []*RouteConfig {
 	return routes
 }
 
-// GetAllSupportedChains 返回所有支持的链（按 chainID 去重）
+// GetAllSupportedChains returns all supported chains, deduplicated by chainID.
 func (mgr *AggregatorManager) GetAllSupportedChains() []SupportedChain {
 	mgr.mutex.RLock()
 	defer mgr.mutex.RUnlock()
@@ -431,7 +431,7 @@ func (mgr *AggregatorManager) GetAllSupportedChains() []SupportedChain {
 	return chains
 }
 
-// GetRoutesByChainPair 根据链对查询所有可用路由
+// GetRoutesByChainPair returns all available routes for the given chain pair.
 func (mgr *AggregatorManager) GetRoutesByChainPair(fromChainID, toChainID int64) []*RouteConfig {
 	mgr.mutex.RLock()
 	defer mgr.mutex.RUnlock()
@@ -444,7 +444,7 @@ func (mgr *AggregatorManager) GetRoutesByChainPair(fromChainID, toChainID int64)
 	return nil
 }
 
-// GetRoutesByChainPairAndSymbol 根据链对+Token符号查询路由
+// GetRoutesByChainPairAndSymbol returns routes by chain pair and token symbol.
 // 注意：Across 聚合器只有 WETH 路由，所以查询 ETH 时也会匹配 WETH 路由
 func (mgr *AggregatorManager) GetRoutesByChainPairAndSymbol(
 	fromChainID, toChainID int64,
@@ -487,60 +487,81 @@ func (mgr *AggregatorManager) tokenSymbolMatches(aggID AggregatorID, querySym, r
 	return false
 }
 
-// GetFeeSegments 获取路由的分段收费配置
+// tokenSymbolMatches 检查查询的 tokenSymbol 是否匹配路由中的 tokenSymbol
+// 对于 Across 聚合器，ETH 和 WETH 视为等价（因为 Across 只有 WETH 路由）
+func (mgr *AggregatorManager) tokenSymbolMatches(aggID AggregatorID, querySym, routeSym string) bool {
+	routeSymLower := strings.ToLower(routeSym)
+
+	// 直接匹配
+	if routeSymLower == querySym {
+		return true
+	}
+
+	// Across 特殊处理：ETH <-> WETH 等价
+	if aggID == AggregatorAcross {
+		if (querySym == "eth" && routeSymLower == "weth") ||
+			(querySym == "weth" && routeSymLower == "eth") {
+			return true
+		}
+	}
+
+	return false
+}
+
+// GetFeeSegments returns the fee segments for a route.
 func (mgr *AggregatorManager) GetFeeSegments(routeID int64) []*FeeSegment {
 	mgr.mutex.RLock()
 	defer mgr.mutex.RUnlock()
 	return mgr.feeSegmentsByRouteID[routeID]
 }
 
-// FindBestRoute 根据金额选择最优路由
-// amountUI: UI 金额（如 "12.5" USDT）
-// tokenSymbol: Token 符号（如 "USDT"、"ETH"）
-// fromChainID, toChainID: 链 ID
-// decimals: Token 精度，用于将 UI 金额转为最小单位
+// FindBestRoute selects the best route based on amount.
+// amountUI: UI amount such as "12.5" USDT
+// tokenSymbol: token symbol such as "USDT" or "ETH"
+// fromChainID, toChainID: chain IDs
+// decimals: token decimals used to convert UI amount to the smallest unit
 func (mgr *AggregatorManager) FindBestRoute(
 	fromChainID, toChainID int64,
 	tokenSymbol string,
 	amountUI string,
 	decimals int32,
 ) (*BestRouteResult, error) {
-	// 1. 查询该链对+Token 的所有路由
+	// 1. Query all routes for the chain pair and token.
 	routes := mgr.GetRoutesByChainPairAndSymbol(fromChainID, toChainID, tokenSymbol)
 	if len(routes) == 0 {
 		return nil, fmt.Errorf("no routes found for %d->%d %s", fromChainID, toChainID, tokenSymbol)
 	}
 
-	// 2. 解析 UI 金额
+	// 2. Parse the UI amount.
 	amtRat, ok := new(big.Rat).SetString(amountUI)
 	if !ok || amtRat.Sign() <= 0 {
 		return nil, fmt.Errorf("invalid amount: %s", amountUI)
 	}
 
-	// 3. 遍历路由，查找匹配的 FeeSegment
+	// 3. Iterate through routes and find a matching fee segment.
 	var bestResult *BestRouteResult
 	var lowestFee *big.Rat
 
 	for _, route := range routes {
-		// 检查金额是否在路由的 min/max 范围内
+		// Check whether the amount falls within the route min/max range.
 		if !mgr.isAmountInRouteRange(amtRat, route) {
 			continue
 		}
 
-		// 查找该路由下匹配金额的 FeeSegment
+		// Find the matching fee segment for this route.
 		segment := mgr.findMatchingSegment(route.ID, amtRat)
 		if segment == nil {
-			continue // 无匹配的分段配置
+			continue // No matching fee segment.
 		}
 
-		// 计算该分段的费用
+		// Calculate fees for the matched segment.
 		feeResult := mgr.calculateFee(amtRat, segment, decimals)
 		if feeResult == nil {
 			continue
 		}
 		feeResult.BestAggregator = route.AggregateID
 
-		// 比较找出最低费用
+		// Keep the route with the lowest fee.
 		feeRat := new(big.Rat).SetInt(feeResult.TotalGasFee)
 		if lowestFee == nil || feeRat.Cmp(lowestFee) < 0 {
 			lowestFee = feeRat
@@ -561,9 +582,9 @@ func (mgr *AggregatorManager) FindBestRoute(
 	return bestResult, nil
 }
 
-// isAmountInRouteRange 检查金额是否在路由的 min/max 范围内
+// isAmountInRouteRange checks whether the amount is within the route min/max range.
 func (mgr *AggregatorManager) isAmountInRouteRange(amtRat *big.Rat, route *RouteConfig) bool {
-	// 解析 min
+	// Parse min.
 	minRat := new(big.Rat)
 	if route.MinAmount != "" && route.MinAmount != "0" {
 		if _, ok := minRat.SetString(route.MinAmount); !ok {
@@ -574,7 +595,7 @@ func (mgr *AggregatorManager) isAmountInRouteRange(amtRat *big.Rat, route *Route
 		}
 	}
 
-	// 解析 max（"0" 或空表示无上限）
+	// Parse max. "0" or empty means no upper limit.
 	if route.MaxAmount != "" && route.MaxAmount != "0" {
 		maxRat := new(big.Rat)
 		if _, ok := maxRat.SetString(route.MaxAmount); !ok {
@@ -588,7 +609,7 @@ func (mgr *AggregatorManager) isAmountInRouteRange(amtRat *big.Rat, route *Route
 	return true
 }
 
-// findMatchingSegment 在分段列表中找到匹配金额的 segment
+// findMatchingSegment finds the fee segment matching the given amount.
 func (mgr *AggregatorManager) findMatchingSegment(routeID int64, amtRat *big.Rat) *FeeSegment {
 	segments := mgr.GetFeeSegments(routeID)
 	if segments == nil {
@@ -596,7 +617,7 @@ func (mgr *AggregatorManager) findMatchingSegment(routeID int64, amtRat *big.Rat
 	}
 
 	for _, seg := range segments {
-		// 解析 min
+		// Parse min.
 		minRat := new(big.Rat)
 		if seg.MinAmountUI != "" {
 			if _, ok := minRat.SetString(seg.MinAmountUI); !ok {
@@ -604,7 +625,7 @@ func (mgr *AggregatorManager) findMatchingSegment(routeID int64, amtRat *big.Rat
 			}
 		}
 
-		// 解析 max
+		// Parse max.
 		maxRat := new(big.Rat)
 		unlimited := seg.MaxAmountUI == "" || seg.MaxAmountUI == "0"
 		if !unlimited {
@@ -613,7 +634,7 @@ func (mgr *AggregatorManager) findMatchingSegment(routeID int64, amtRat *big.Rat
 			}
 		}
 
-		// 判断 amt 是否在 [min, max) 区间内
+		// Check whether amt is within the [min, max) range.
 		if amtRat.Cmp(minRat) >= 0 {
 			if unlimited || amtRat.Cmp(maxRat) < 0 {
 				return seg
@@ -624,25 +645,25 @@ func (mgr *AggregatorManager) findMatchingSegment(routeID int64, amtRat *big.Rat
 	return nil
 }
 
-// calculateFee 根据 FeeSegment 计算费用
-// amtRat: UI 金额（big.Rat）
-// seg: 匹配的分段配置
-// decimals: Token 精度
+// calculateFee calculates fees from a fee segment.
+// amtRat: UI amount as big.Rat
+// seg: matched fee segment
+// decimals: token decimals
 func (mgr *AggregatorManager) calculateFee(amtRat *big.Rat, seg *FeeSegment, decimals int32) *FeeResult {
 	result := &FeeResult{
-		BestAggregator:     AggregatorNone, // 由调用者设置
+		BestAggregator:     AggregatorNone, // Set by the caller.
 		ProtocolFeeRateBps: seg.ProtocolFeeRateBps,
 	}
 
-	// 计算精度因子：10^decimals
+	// Compute the precision factor: 10^decimals.
 	decimalFactor := new(big.Int).Exp(big.NewInt(10), big.NewInt(int64(decimals)), nil)
 	decimalFactorRat := new(big.Rat).SetInt(decimalFactor)
 
-	// 将 UI 金额转为最小单位
+	// Convert the UI amount to the smallest unit.
 	amtWeiRat := new(big.Rat).Mul(amtRat, decimalFactorRat)
 	amtWei := new(big.Int).Div(amtWeiRat.Num(), amtWeiRat.Denom())
 
-	// 1. 计算 Owlto 固定费用
+	// 1. Calculate the fixed Owlto fee.
 	owltoFixedUI := new(big.Rat)
 	if seg.OwltoFeeFixedUI != "" && seg.OwltoFeeFixedUI != "0" {
 		owltoFixedUI.SetString(seg.OwltoFeeFixedUI)
@@ -650,24 +671,24 @@ func (mgr *AggregatorManager) calculateFee(amtRat *big.Rat, seg *FeeSegment, dec
 	owltoFixedWeiRat := new(big.Rat).Mul(owltoFixedUI, decimalFactorRat)
 	owltoFixedWei := new(big.Int).Div(owltoFixedWeiRat.Num(), owltoFixedWeiRat.Denom())
 
-	// 2. 计算 Owlto 百分比费用：amount * rate / 10000
+	// 2. Calculate the Owlto percentage fee: amount * rate / 10000.
 	owltoRateWei := big.NewInt(0)
 	if seg.OwltoFeeRateBps > 0 {
 		owltoRateWei = new(big.Int).Mul(amtWei, big.NewInt(int64(seg.OwltoFeeRateBps)))
 		owltoRateWei = new(big.Int).Div(owltoRateWei, big.NewInt(10000))
 	}
 
-	// 3. 总 Owlto 费用 = 固定 + 百分比
+	// 3. Total Owlto fee = fixed + percentage.
 	result.OwltoFee = new(big.Int).Add(owltoFixedWei, owltoRateWei)
 
-	// 4. Channel Fee（协议费用）这里根据实际聚合器 API 获取
-	//    简化处理：暂时用 Owlto 固定费作为 Channel Fee（实际应调 API）
+	// 4. Channel fee should come from the actual aggregator API.
+	//    For now, use the Owlto fixed fee as a placeholder channel fee.
 	result.ChannelFee = owltoFixedWei
 
-	// 5. 总 Gas Fee
+	// 5. Total gas fee.
 	result.TotalGasFee = new(big.Int).Add(result.ChannelFee, result.OwltoFee)
 
-	// 6. Protocol Fee（如 Across 0.1%）
+	// 6. Protocol fee, for example Across 0.1%.
 	if seg.ProtocolFeeRateBps > 0 {
 		result.ProtocolFee = new(big.Int).Mul(amtWei, big.NewInt(int64(seg.ProtocolFeeRateBps)))
 		result.ProtocolFee = new(big.Int).Div(result.ProtocolFee, big.NewInt(10000))
@@ -675,7 +696,7 @@ func (mgr *AggregatorManager) calculateFee(amtRat *big.Rat, seg *FeeSegment, dec
 		result.ProtocolFee = big.NewInt(0)
 	}
 
-	// 7. 转换为 UI 金额字符串（可选）
+	// 7. Convert results back to UI amount strings.
 	result.TotalGasFeeUI = mgr.weiToUI(result.TotalGasFee, decimals)
 	result.OwltoFeeUI = mgr.weiToUI(result.OwltoFee, decimals)
 	result.ChannelFeeUI = mgr.weiToUI(result.ChannelFee, decimals)
@@ -683,7 +704,7 @@ func (mgr *AggregatorManager) calculateFee(amtRat *big.Rat, seg *FeeSegment, dec
 	return result
 }
 
-// weiToUI 将最小单位转为 UI 金额字符串
+// weiToUI converts the smallest unit to a UI amount string.
 func (mgr *AggregatorManager) weiToUI(wei *big.Int, decimals int32) string {
 	if wei == nil || wei.Sign() == 0 {
 		return "0"
