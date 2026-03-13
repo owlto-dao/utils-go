@@ -41,22 +41,22 @@ func (c *Client) DoGet(ctx context.Context, url string, headers map[string]strin
 	return c.doRequest(req, response)
 }
 
-// DoPost 发送一个 HTTP POST 请求，支持 JSON、表单和纯文本数据
+// DoPost sends an HTTP POST request and supports JSON, form, and plain text payloads.
 func (c *Client) DoPost(ctx context.Context, urlStr string, data interface{}, headers map[string]string, response interface{}) error {
 	var body []byte
 	var err error
 	var contentType string
 
-	// 根据 data 的类型推断内容类型并进行相应处理
+	// Infer the content type from data and handle it accordingly.
 	switch v := data.(type) {
-	case string: // 如果是纯文本数据
+	case string: // Plain text payload.
 		body = []byte(v)
 		contentType = "text/plain"
-	case url.Values: // 如果是表单数据
+	case url.Values: // Form payload.
 		body = []byte(v.Encode())
 		contentType = "application/x-www-form-urlencoded"
 	default:
-		// 尝试将数据序列化为 JSON
+		// Try to serialize the payload as JSON.
 		body, err = json.Marshal(data)
 		if err != nil {
 			return fmt.Errorf("无法将数据序列化为 JSON：%v", err)
@@ -64,7 +64,7 @@ func (c *Client) DoPost(ctx context.Context, urlStr string, data interface{}, he
 		contentType = "application/json"
 	}
 
-	// 创建 HTTP 请求
+	// Create the HTTP request.
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, urlStr, bytes.NewBuffer(body))
 	if err != nil {
 		return err
