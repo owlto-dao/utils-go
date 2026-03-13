@@ -78,7 +78,7 @@ type sharedTicker struct {
 }
 
 var (
-	// 共用 ticker
+	// Shared tickers.
 	refreshTickerMap, expireTickerMap sync.Map
 )
 

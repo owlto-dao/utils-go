@@ -36,7 +36,7 @@ func GetChecksumAddress(address string) (string, error) {
 }
 
 func GetFuelChecksumAddress(address string) (string, error) {
-	// 检查地址是否符合 B256 格式
+	// Check whether the address matches the B256 format.
 	if !isB256(address) {
 		return "", fmt.Errorf("invalid B256 address format")
 	}
@@ -58,20 +58,20 @@ func isB256(address string) bool {
 }
 
 func toFuelChecksumAddress(address string) string {
-	// 转换地址为小写，并去掉前缀 "0x"
+	// Convert the address to lowercase and remove the "0x" prefix.
 	addressHex := strings.ToLower(strings.TrimPrefix(address, "0x"))
 
-	// 计算地址的 SHA-256 哈希
+	// Compute the SHA-256 hash of the address.
 	hasher := sha256.New()
 	hasher.Write([]byte(addressHex))
 	checksum := hasher.Sum(nil)
 
-	// 根据哈希值设置字符的大小写
+	// Set the casing of characters based on the hash.
 	ret := "0x"
 	for i := 0; i < 32; i++ {
 		ha := addressHex[i*2]
 		hb := addressHex[i*2+1]
-		// 根据哈希的高 4 位和低 4 位设置字符大小写
+		// Use the high 4 bits and low 4 bits of the hash byte to decide casing.
 		if checksum[i]&0xf0 >= 0x80 {
 			ret += strings.ToUpper(string(ha))
 		} else {

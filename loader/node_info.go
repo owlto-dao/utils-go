@@ -96,7 +96,7 @@ func (mgr *NodeInfoManager) GetEnabledNodes() []*NodeInfo {
 	return enabled
 }
 
-// GetBestNodeByChainIdAndType 获取指定链和节点类型下可用性最高的节点。
+// GetBestNodeByChainIdAndType returns the highest-usability node for the given chain and node type.
 func (mgr *NodeInfoManager) GetBestNodeByChainIdAndType(chainId int64, nodeType int32) (*NodeInfo, bool) {
 	nodes := mgr.GetNodeInfosByChainIdAndType(chainId, nodeType)
 	if len(nodes) == 0 {
@@ -105,7 +105,8 @@ func (mgr *NodeInfoManager) GetBestNodeByChainIdAndType(chainId int64, nodeType 
 	return nodes[0], true
 }
 
-// GetAvailableNodeByChainId 根据 chainId 获取一个可用节点（usability > 0，按可用性降序优先）。
+// GetAvailableNodeByChainId returns an available node for the given chainId.
+// Nodes with usability > 0 are treated as available, and higher-usability nodes are preferred first.
 func (mgr *NodeInfoManager) GetAvailableNodeByChainId(chainId int64) (*NodeInfo, bool) {
 	mgr.mutex.RLock()
 	defer mgr.mutex.RUnlock()
