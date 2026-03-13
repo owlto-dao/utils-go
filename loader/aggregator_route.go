@@ -466,38 +466,17 @@ func (mgr *AggregatorManager) GetRoutesByChainPairAndSymbol(
 	return result
 }
 
-// tokenSymbolMatches 检查查询的 tokenSymbol 是否匹配路由中的 tokenSymbol
-// 对于 Across 聚合器，ETH 和 WETH 视为等价（因为 Across 只有 WETH 路由）
+// tokenSymbolMatches checks if the queried tokenSymbol matches the route's tokenSymbol.
+// For Across aggregator, ETH and WETH are treated as equivalent (Across only has WETH routes).
 func (mgr *AggregatorManager) tokenSymbolMatches(aggID AggregatorID, querySym, routeSym string) bool {
 	routeSymLower := strings.ToLower(routeSym)
 
-	// 直接匹配
+	// Direct match
 	if routeSymLower == querySym {
 		return true
 	}
 
-	// Across 特殊处理：ETH <-> WETH 等价
-	if aggID == AggregatorAcross {
-		if (querySym == "eth" && routeSymLower == "weth") ||
-			(querySym == "weth" && routeSymLower == "eth") {
-			return true
-		}
-	}
-
-	return false
-}
-
-// tokenSymbolMatches 检查查询的 tokenSymbol 是否匹配路由中的 tokenSymbol
-// 对于 Across 聚合器，ETH 和 WETH 视为等价（因为 Across 只有 WETH 路由）
-func (mgr *AggregatorManager) tokenSymbolMatches(aggID AggregatorID, querySym, routeSym string) bool {
-	routeSymLower := strings.ToLower(routeSym)
-
-	// 直接匹配
-	if routeSymLower == querySym {
-		return true
-	}
-
-	// Across 特殊处理：ETH <-> WETH 等价
+	// Special handling for Across: ETH <-> WETH are equivalent
 	if aggID == AggregatorAcross {
 		if (querySym == "eth" && routeSymLower == "weth") ||
 			(querySym == "weth" && routeSymLower == "eth") {
