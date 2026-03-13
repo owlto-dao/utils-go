@@ -445,46 +445,45 @@ func (mgr *AggregatorManager) GetRoutesByChainPair(fromChainID, toChainID int64)
 }
 
 // GetRoutesByChainPairAndSymbol returns routes by chain pair and token symbol.
-// 注意：Across 聚合器只有 WETH 路由，所以查询 ETH 时也会匹配 WETH 路由
+// ETH and WETH are treated as equivalent for all aggregators.
 func (mgr *AggregatorManager) GetRoutesByChainPairAndSymbol(
 	fromChainID, toChainID int64,
 	tokenSymbol string,
 ) []*RouteConfig {
-	routes := mgr.GetRoutesByChainPair(fromChainID, toChainID)
-	if routes == nil {
-		return nil
+	mgr.mutex.RLock()
+	defer mgr.mutex.RUnlock()
+
+	var routes []*RouteConfig
+	tokenUpper := strings.ToUpper(strings.TrimSpace(tokenSymbol))
+
+	// Token mapping: requested token -> list of config tokens to match
+	// ETH can match both ETH and WETH routes, but WETH only matches WETH
+	tokenMappings := map[string][]string{
+		"ETH": {"ETH", "WETH"},
 	}
 
-	sym := strings.ToLower(strings.TrimSpace(tokenSymbol))
-	var result []*RouteConfig
-	for _, r := range routes {
-		if mgr.tokenSymbolMatches(r.AggregateID, sym, r.FromTokenSymbol) ||
-			mgr.tokenSymbolMatches(r.AggregateID, sym, r.ToTokenSymbol) {
-			result = append(result, r)
+	// Get the list of tokens to match
+	matchTokens := []string{tokenUpper}
+	if mappings, ok := tokenMappings[tokenUpper]; ok {
+		matchTokens = mappings
+	}
+
+	// Iterate routes and match any token
+	if chainMap, ok := mgr.routesByChainPair[fromChainID]; ok {
+		if rs, ok := chainMap[toChainID]; ok {
+			for _, r := range rs {
+				configTokenUpper := strings.ToUpper(r.FromTokenSymbol)
+				for _, matchToken := range matchTokens {
+					if configTokenUpper == matchToken {
+						routes = append(routes, r)
+						break
+					}
+				}
+			}
 		}
 	}
-	return result
-}
 
-// tokenSymbolMatches checks if the queried tokenSymbol matches the route's tokenSymbol.
-// For Across aggregator, ETH and WETH are treated as equivalent (Across only has WETH routes).
-func (mgr *AggregatorManager) tokenSymbolMatches(aggID AggregatorID, querySym, routeSym string) bool {
-	routeSymLower := strings.ToLower(routeSym)
-
-	// Direct match
-	if routeSymLower == querySym {
-		return true
-	}
-
-	// Special handling for Across: ETH <-> WETH are equivalent
-	if aggID == AggregatorAcross {
-		if (querySym == "eth" && routeSymLower == "weth") ||
-			(querySym == "weth" && routeSymLower == "eth") {
-			return true
-		}
-	}
-
-	return false
+	return routes
 }
 
 // GetFeeSegments returns the fee segments for a route.
