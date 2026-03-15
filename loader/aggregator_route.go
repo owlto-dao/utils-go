@@ -445,7 +445,6 @@ func (mgr *AggregatorManager) GetRoutesByChainPair(fromChainID, toChainID int64)
 }
 
 // GetRoutesByChainPairAndSymbol returns routes by chain pair and token symbol.
-// ETH and WETH are treated as equivalent for all aggregators.
 func (mgr *AggregatorManager) GetRoutesByChainPairAndSymbol(
 	fromChainID, toChainID int64,
 	tokenSymbol string,
@@ -456,28 +455,13 @@ func (mgr *AggregatorManager) GetRoutesByChainPairAndSymbol(
 	var routes []*RouteConfig
 	tokenUpper := strings.ToUpper(strings.TrimSpace(tokenSymbol))
 
-	// Token mapping: requested token -> list of config tokens to match
-	// ETH can match both ETH and WETH routes, but WETH only matches WETH
-	tokenMappings := map[string][]string{
-		"ETH": {"ETH", "WETH"},
-	}
-
-	// Get the list of tokens to match
-	matchTokens := []string{tokenUpper}
-	if mappings, ok := tokenMappings[tokenUpper]; ok {
-		matchTokens = mappings
-	}
-
-	// Iterate routes and match any token
+	// Iterate routes and match the exact token
 	if chainMap, ok := mgr.routesByChainPair[fromChainID]; ok {
 		if rs, ok := chainMap[toChainID]; ok {
 			for _, r := range rs {
 				configTokenUpper := strings.ToUpper(r.FromTokenSymbol)
-				for _, matchToken := range matchTokens {
-					if configTokenUpper == matchToken {
-						routes = append(routes, r)
-						break
-					}
+				if configTokenUpper == tokenUpper {
+					routes = append(routes, r)
 				}
 			}
 		}
