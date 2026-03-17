@@ -14,16 +14,17 @@ type NodeInfo struct {
 	UpdateTimestamp time.Time
 	InsertTimestamp time.Time
 	ChainId         int64
+	RealChainId     int64
 	RpcURL          string
 	Type            int32
 	Usability       int32
 }
 
 type NodeInfoManager struct {
-	idNodes          map[int64]*NodeInfo
-	chainIdNodes     map[int64][]*NodeInfo
-	chainIdTypeNodes map[int64]map[int32][]*NodeInfo
-	allNodes         []*NodeInfo
+	idNodes              map[int64]*NodeInfo
+	realChainIdNodes     map[int64][]*NodeInfo
+	realChainIdTypeNodes map[int64]map[int32][]*NodeInfo
+	allNodes             []*NodeInfo
 
 	db      *sql.DB
 	alerter alert.Alerter
@@ -32,13 +33,13 @@ type NodeInfoManager struct {
 
 func NewNodeInfoManager(db *sql.DB, alerter alert.Alerter) *NodeInfoManager {
 	return &NodeInfoManager{
-		idNodes:          make(map[int64]*NodeInfo),
-		chainIdNodes:     make(map[int64][]*NodeInfo),
-		chainIdTypeNodes: make(map[int64]map[int32][]*NodeInfo),
-		allNodes:         make([]*NodeInfo, 0, 64),
-		db:               db,
-		alerter:          alerter,
-		mutex:            &sync.RWMutex{},
+		idNodes:              make(map[int64]*NodeInfo),
+		realChainIdNodes:     make(map[int64][]*NodeInfo),
+		realChainIdTypeNodes: make(map[int64]map[int32][]*NodeInfo),
+		allNodes:             make([]*NodeInfo, 0, 64),
+		db:                   db,
+		alerter:              alerter,
+		mutex:                &sync.RWMutex{},
 	}
 }
 
@@ -50,21 +51,21 @@ func (mgr *NodeInfoManager) GetNodeInfoById(id int64) (*NodeInfo, bool) {
 	return node, ok
 }
 
-func (mgr *NodeInfoManager) GetNodeInfosByChainId(chainId int64) []*NodeInfo {
+func (mgr *NodeInfoManager) GetNodeInfosByRealChainId(realChainId int64) []*NodeInfo {
 	mgr.mutex.RLock()
 	defer mgr.mutex.RUnlock()
 
-	nodes := mgr.chainIdNodes[chainId]
+	nodes := mgr.realChainIdNodes[realChainId]
 	out := make([]*NodeInfo, len(nodes))
 	copy(out, nodes)
 	return out
 }
 
-func (mgr *NodeInfoManager) GetNodeInfosByChainIdAndType(chainId int64, nodeType int32) []*NodeInfo {
+func (mgr *NodeInfoManager) GetNodeInfosByRealChainIdAndType(realChainId int64, nodeType int32) []*NodeInfo {
 	mgr.mutex.RLock()
 	defer mgr.mutex.RUnlock()
 
-	typeNodes, ok := mgr.chainIdTypeNodes[chainId]
+	typeNodes, ok := mgr.realChainIdTypeNodes[realChainId]
 	if !ok {
 		return nil
 	}
@@ -96,22 +97,22 @@ func (mgr *NodeInfoManager) GetEnabledNodes() []*NodeInfo {
 	return enabled
 }
 
-// GetBestNodeByChainIdAndType returns the highest-usability node for the given chain and node type.
-func (mgr *NodeInfoManager) GetBestNodeByChainIdAndType(chainId int64, nodeType int32) (*NodeInfo, bool) {
-	nodes := mgr.GetNodeInfosByChainIdAndType(chainId, nodeType)
+// GetBestNodeByRealChainIdAndType returns the highest-usability node for the given chain and node type.
+func (mgr *NodeInfoManager) GetBestNodeByRealChainIdAndType(realChainId int64, nodeType int32) (*NodeInfo, bool) {
+	nodes := mgr.GetNodeInfosByRealChainIdAndType(realChainId, nodeType)
 	if len(nodes) == 0 {
 		return nil, false
 	}
 	return nodes[0], true
 }
 
-// GetAvailableNodeByChainId returns an available node for the given chainId.
+// GetAvailableNodeByRealChainId returns an available node for the given realChainId.
 // Nodes with usability > 0 are treated as available, and higher-usability nodes are preferred first.
-func (mgr *NodeInfoManager) GetAvailableNodeByChainId(chainId int64) (*NodeInfo, bool) {
+func (mgr *NodeInfoManager) GetAvailableNodeByRealChainId(realChainId int64) (*NodeInfo, bool) {
 	mgr.mutex.RLock()
 	defer mgr.mutex.RUnlock()
 
-	nodes := mgr.chainIdNodes[chainId]
+	nodes := mgr.realChainIdNodes[realChainId]
 	for _, node := range nodes {
 		if node.Usability > 0 {
 			return node, true
@@ -122,7 +123,7 @@ func (mgr *NodeInfoManager) GetAvailableNodeByChainId(chainId int64) (*NodeInfo,
 
 func (mgr *NodeInfoManager) LoadAllNodes() {
 	rows, err := mgr.db.Query(`
-		SELECT id, update_timestamp, insert_timestamp, chain_id, rpc_url, type, usability
+		SELECT id, update_timestamp, insert_timestamp, chain_id, real_chain_id, rpc_url, type, usability
 		FROM t_node_info
 	`)
 	if err != nil || rows == nil {
@@ -132,8 +133,8 @@ func (mgr *NodeInfoManager) LoadAllNodes() {
 	defer rows.Close()
 
 	idNodes := make(map[int64]*NodeInfo)
-	chainIdNodes := make(map[int64][]*NodeInfo)
-	chainIdTypeNodes := make(map[int64]map[int32][]*NodeInfo)
+	realChainIdNodes := make(map[int64][]*NodeInfo)
+	realChainIdTypeNodes := make(map[int64]map[int32][]*NodeInfo)
 	allNodes := make([]*NodeInfo, 0, 64)
 
 	for rows.Next() {
@@ -143,6 +144,7 @@ func (mgr *NodeInfoManager) LoadAllNodes() {
 			&node.UpdateTimestamp,
 			&node.InsertTimestamp,
 			&node.ChainId,
+			&node.RealChainId,
 			&node.RpcURL,
 			&node.Type,
 			&node.Usability,
@@ -152,11 +154,11 @@ func (mgr *NodeInfoManager) LoadAllNodes() {
 		}
 
 		idNodes[node.Id] = &node
-		chainIdNodes[node.ChainId] = append(chainIdNodes[node.ChainId], &node)
-		if _, ok := chainIdTypeNodes[node.ChainId]; !ok {
-			chainIdTypeNodes[node.ChainId] = make(map[int32][]*NodeInfo)
+		realChainIdNodes[node.RealChainId] = append(realChainIdNodes[node.RealChainId], &node)
+		if _, ok := realChainIdTypeNodes[node.RealChainId]; !ok {
+			realChainIdTypeNodes[node.RealChainId] = make(map[int32][]*NodeInfo)
 		}
-		chainIdTypeNodes[node.ChainId][node.Type] = append(chainIdTypeNodes[node.ChainId][node.Type], &node)
+		realChainIdTypeNodes[node.RealChainId][node.Type] = append(realChainIdTypeNodes[node.RealChainId][node.Type], &node)
 		allNodes = append(allNodes, &node)
 	}
 
@@ -166,19 +168,19 @@ func (mgr *NodeInfoManager) LoadAllNodes() {
 	}
 
 	sortNodesByUsability(allNodes)
-	for chainId := range chainIdNodes {
-		sortNodesByUsability(chainIdNodes[chainId])
+	for realChainId := range realChainIdNodes {
+		sortNodesByUsability(realChainIdNodes[realChainId])
 	}
-	for chainId := range chainIdTypeNodes {
-		for nodeType := range chainIdTypeNodes[chainId] {
-			sortNodesByUsability(chainIdTypeNodes[chainId][nodeType])
+	for realChainId := range realChainIdTypeNodes {
+		for nodeType := range realChainIdTypeNodes[realChainId] {
+			sortNodesByUsability(realChainIdTypeNodes[realChainId][nodeType])
 		}
 	}
 
 	mgr.mutex.Lock()
 	mgr.idNodes = idNodes
-	mgr.chainIdNodes = chainIdNodes
-	mgr.chainIdTypeNodes = chainIdTypeNodes
+	mgr.realChainIdNodes = realChainIdNodes
+	mgr.realChainIdTypeNodes = realChainIdTypeNodes
 	mgr.allNodes = allNodes
 	mgr.mutex.Unlock()
 }

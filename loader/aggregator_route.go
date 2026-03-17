@@ -449,19 +449,25 @@ func (mgr *AggregatorManager) GetRoutesByChainPairAndSymbol(
 	fromChainID, toChainID int64,
 	tokenSymbol string,
 ) []*RouteConfig {
-	routes := mgr.GetRoutesByChainPair(fromChainID, toChainID)
-	if routes == nil {
-		return nil
-	}
+	mgr.mutex.RLock()
+	defer mgr.mutex.RUnlock()
 
-	sym := strings.ToLower(strings.TrimSpace(tokenSymbol))
-	var result []*RouteConfig
-	for _, r := range routes {
-		if strings.ToLower(r.FromTokenSymbol) == sym || strings.ToLower(r.ToTokenSymbol) == sym {
-			result = append(result, r)
+	var routes []*RouteConfig
+	tokenUpper := strings.ToUpper(strings.TrimSpace(tokenSymbol))
+
+	// Iterate routes and match the exact token
+	if chainMap, ok := mgr.routesByChainPair[fromChainID]; ok {
+		if rs, ok := chainMap[toChainID]; ok {
+			for _, r := range rs {
+				configTokenUpper := strings.ToUpper(r.FromTokenSymbol)
+				if configTokenUpper == tokenUpper {
+					routes = append(routes, r)
+				}
+			}
 		}
 	}
-	return result
+
+	return routes
 }
 
 // GetFeeSegments returns the fee segments for a route.
