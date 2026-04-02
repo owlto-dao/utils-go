@@ -10,6 +10,7 @@ import (
 )
 
 type TokenInfo struct {
+	Id           int64
 	TokenName    string
 	ChainName    string
 	TokenAddress string
@@ -126,7 +127,7 @@ func (mgr *TokenInfoManager) LoadAllToken(chainManager *ChainInfoManager) {
 		panic("chainManager is required")
 	}
 	// Query the database to select only id and name fields
-	rows, err := mgr.db.Query("SELECT token_name, chain_name, token_address, decimals, icon FROM t_token_info")
+	rows, err := mgr.db.Query("SELECT id, token_name, chain_name, token_address, decimals, icon FROM t_token_info")
 
 	if err != nil || rows == nil {
 		mgr.alerter.AlertText("select t_token_info error", err)
@@ -144,7 +145,7 @@ func (mgr *TokenInfoManager) LoadAllToken(chainManager *ChainInfoManager) {
 	for rows.Next() {
 		var token TokenInfo
 
-		if err = rows.Scan(&token.TokenName, &token.ChainName, &token.TokenAddress, &token.Decimals, &token.Icon); err != nil {
+		if err = rows.Scan(&token.Id, &token.TokenName, &token.ChainName, &token.TokenAddress, &token.Decimals, &token.Icon); err != nil {
 			mgr.alerter.AlertText("scan t_token_info row error", err)
 		} else {
 			token.ChainName = strings.TrimSpace(token.ChainName)
@@ -165,6 +166,7 @@ func (mgr *TokenInfoManager) LoadAllToken(chainManager *ChainInfoManager) {
 				chainNameTokenNames[strings.ToLower(token.ChainName)] = tokenNames
 			}
 			tokenNames[strings.ToLower(token.TokenName)] = &token
+
 			allTokens = append(allTokens, &token)
 			counter++
 		}
