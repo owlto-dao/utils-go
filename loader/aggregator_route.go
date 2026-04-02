@@ -647,8 +647,8 @@ func (mgr *AggregatorManager) calculateFee(amtRat *big.Rat, seg *FeeSegment, dec
 	//    For now, use the Owlto fixed fee as a placeholder channel fee.
 	result.ChannelFee = owltoFixedWei
 
-	// 5. Total gas fee.
-	result.TotalGasFee = new(big.Int).Add(result.ChannelFee, result.OwltoFee)
+	// 5. Total gas fee (for Aggregator routes, only OwltoFee is included).
+	result.TotalGasFee = result.OwltoFee
 
 	// 6. Protocol fee, for example Across 0.1%.
 	if seg.ProtocolFeeRateBps > 0 {
